@@ -1,0 +1,27 @@
+{
+  "name": "dom-cfg-extractor",
+  "version": "1.0.0",
+  "description": "Extract DOM data via JSON config. Change config, not code, when structure changes.",
+  "license": "ISC",
+  "author": "Jayhoo",
+  "keywords": [
+    "spider",
+    "DOM",
+    "extractor"
+  ],
+  "type": "module",
+  "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
