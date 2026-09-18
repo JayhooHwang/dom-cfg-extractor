@@ -65,3 +65,20 @@ export function clickAndQuery(baseNode:Document|Element, selector:string,
         return Promise.resolve(null);
     }
 }
+
+/**
+ * @param {Element} el 
+ * @param {string} attr Name Of Attribute(eg: href) or Property(eg: innerText)
+ * @returns {string}
+ */
+export function readPropOrAttrFromElement(el:Element, attr: keyof Element):string|undefined{
+    const _EL_PROPS = ["innerText", "innerHTML", "href"];   //为什么需要列入 href：如果通过 getAttribute 获取 href，则只获取原始字符串，而不会自动拼接为一个完整的 url
+    const result = _EL_PROPS.includes(attr) ? el[attr] : el.getAttribute(attr);
+    switch(typeof result){
+        case 'bigint':
+        case 'boolean':
+        case 'number': return String(result);
+        case 'string': return result;
+        default: return undefined;
+    }
+}
