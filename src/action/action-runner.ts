@@ -1,5 +1,4 @@
-
-import { ActionCaller, ActionData, ActionHandle, ApplyFor } from "../types";
+import { ActionCaller, ActionData, ApplyFor } from "../types";
 import { DomExtractorError } from "../error";
 import { ActionRegistry } from "./action-registry"
 
@@ -7,21 +6,8 @@ export class ActionRunner{
 
     #actionRegistry: ActionRegistry
 
-    constructor(initActionRegistry:ActionRegistry){
-        this.#actionRegistry = initActionRegistry || new ActionRegistry();
-    }
-
-    /**
-     * @param name The registration name of the Action
-     * @param actionHandle The specific handling function of the action
-     * @param applyFor Set whether it applies to single text or array, defaults to 'single'
-     */
-    registerAction(name:string, actionHandle:ActionHandle, applyFor:ApplyFor){
-        return this.#actionRegistry.register(name, actionHandle, applyFor);
-    }
-
-    appendActionRegistry(newRegistry:ActionRegistry){
-        this.#actionRegistry = ActionRegistry.getMerges(this.#actionRegistry, newRegistry);
+    constructor(actionRegistry:ActionRegistry){
+        this.#actionRegistry = actionRegistry;
     }
 
     runGroupActions(rawArray:string[], actionCallers:ActionCaller[], context:object){
@@ -46,13 +32,15 @@ class ActionPipeRunner{
         this.#applyFor = applyFor;
     }
 
+    run(rawData:string, actionCallers:ActionCaller[]):string
+    run(rawData:string[], actionCallers:ActionCaller[]):string[]
     run(rawData:ActionData, actionCallers:ActionCaller[]){
         let result = rawData;
         if(!actionCallers){
             return result;
         }
         for(let caller of actionCallers){
-            const { name, params } = _resolveActionCaller(caller);
+            const { name, params } = resolveActionCaller(caller);
             const action = this.#actionRegistry.getAction(name);
             if(action.applyFor !== this.#applyFor){
                 throw new DomExtractorError(`Action "${action.name}" is not applicable for ${this.#applyFor}`)
@@ -68,7 +56,7 @@ class ActionPipeRunner{
  * @param { ActionCaller } actionCaller 
  * @returns 
  */
-function _resolveActionCaller(actionCaller:ActionCaller){
+function resolveActionCaller(actionCaller:ActionCaller){
     if(typeof actionCaller === 'string'){
         // When action is a string, it means an action without any parameters
         actionCaller = { name: actionCaller, params:[] };

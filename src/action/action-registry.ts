@@ -9,9 +9,8 @@ export class ActionRegistry{
         this.#registry = new Map();
     }
 
-    // todo: 暴露了 registry，有可能被改动
-    get registryMap(){
-        return this.#registry;
+    [Symbol.iterator](){
+        return this.#registry.values()[Symbol.iterator]()
     }
 
     getAction(name:string){
@@ -28,19 +27,28 @@ export class ActionRegistry{
      * @param applyFor Set whether it applies to single text or array, defaults to 'single'
      */
     register(name:string, actionHandle:ActionHandle, applyFor:ApplyFor='single'){
-        if(this.includes(name)){
-            throw new Error(`action ${name} has already been registered`);
-        }
+        this.#duplicateNameCheck(name);
         this.#registry.set(name, new Action(name, applyFor, actionHandle));
     }
+    
     includes(name:string){
         return this.#registry.has(name);
     }
 
-    static getMerges(...actionRegistries:ActionRegistry[]){
+    #duplicateNameCheck(name:string):void{
+        if(this.includes(name)){
+            throw new DomExtractorError(`action ${name} has already been registered`);
+        }
+    }
+
+    static getMerges(...actionRegistries:(ActionRegistry|undefined)[]){
         const mergedRegistry = new ActionRegistry();
         actionRegistries.forEach(actionRegistry=>{
-            mergedRegistry.#registry = new Map([...mergedRegistry.registryMap, ...actionRegistry.registryMap])
+            if(!actionRegistry) return;
+            for(const action of actionRegistry){
+                mergedRegistry.#duplicateNameCheck(action.name);
+                mergedRegistry.#registry.set(action.name, action);
+            }
         });
         return mergedRegistry;
     }
