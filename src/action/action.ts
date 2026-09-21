@@ -33,9 +33,11 @@ export class Action{
      * @param params Additional parameters for the handle function, 2nd to nth
      * @returns The processed data
      */
+    run(rawData:string, context:object, ...params:string[]):string
+    run(rawData:string[], context:object, ...params:string[]):string[]
     run(rawData:ActionData, context:object, ...params:string[]){
         if(!Array.isArray(rawData) && typeof rawData !== 'string'){
-            throw new DomExtractorError(`Action "${this.#name}" can only process arrays or strings`);
+            throw new DomExtractorError(`Action "${this.#name}" can only process arrays`);
         }
         if(Array.isArray(rawData) && this.#applyFor === 'single'){
             throw new DomExtractorError(`Action ${this.#name} cannot be used to process arrays`);
