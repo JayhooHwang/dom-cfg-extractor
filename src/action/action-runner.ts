@@ -10,8 +10,6 @@ export class ActionRunner{
         this.#actionRegistry = actionRegistry;
     }
 
-    run(rawData:string, actionCallers:ActionCaller[], context:object):string
-    run(rawData:string[], actionCallers:ActionCaller[], context:object):string[]
     run(rawData:string|string[], actionCallers:ActionCaller[], context:object){
         let result = rawData;
         for(const caller of actionCallers){
