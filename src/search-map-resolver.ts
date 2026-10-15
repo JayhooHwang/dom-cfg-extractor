@@ -1,5 +1,5 @@
-import { DomExtractorError } from "./error";
-import { ActionCaller } from "./types";
+import { DomExtractorError } from "./error.ts";
+import type { ActionCaller } from "./types/index.d.ts";
 
 export type SearchMap = Record<string, MapItem|string>
 

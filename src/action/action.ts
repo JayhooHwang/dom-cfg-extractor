@@ -1,5 +1,5 @@
-import { ApplyFor, ActionHandle, ActionData, SingleActionHandle, GroupActionHandle } from "../types"
-import { DomExtractorError } from "../error"
+import type { ApplyFor, ActionHandle, ActionData, SingleActionHandle, GroupActionHandle } from "./types.ts"
+import { DomExtractorError } from "../error.ts"
 
 export class Action{
     #name:string

@@ -1,4 +1,4 @@
-import { consoleWarning } from "./error";
+import { consoleWarning } from "./error.ts";
 
 /**
  * 深入查找 iframe ( 使用 @ 作为选择器分隔符, 例如："#the_iframe@#the_div_in_frame" )

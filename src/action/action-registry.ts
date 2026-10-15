@@ -1,6 +1,6 @@
-import { ActionHandle, ApplyFor } from "../types";
-import { DomExtractorError } from "../error";
-import { Action } from "./action";
+import type { ActionHandle, ApplyFor } from "./types.ts";
+import { DomExtractorError } from "../error.ts";
+import { Action } from "./action.ts";
 
 export class ActionRegistry{
     #registry: Map<string, Action>;

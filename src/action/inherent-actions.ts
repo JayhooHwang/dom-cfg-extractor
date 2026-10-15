@@ -1,7 +1,7 @@
 /**
  * Register inherent actions for spider
  */
-import { ActionRegistry } from "./action-registry";
+import { ActionRegistry } from "./action-registry.ts";
 
 export const inherentActions = new ActionRegistry();
 // 默认 action
@@ -9,7 +9,7 @@ inherentActions.register('split', (strArr:string[], splitter:string)=>{
     if(!splitter || !splitter.length){
         throw new Error("Action [split] 必须传递 1 个参数")
     }
-    const [str] = strArr;
+    const [str=""] = strArr;
     return str.split(splitter);
 }, 'group');
 

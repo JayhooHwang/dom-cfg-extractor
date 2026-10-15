@@ -1,6 +1,6 @@
-import { ActionCaller, ActionData, ApplyFor } from "../types";
-import { DomExtractorError } from "../error";
-import { ActionRegistry } from "./action-registry"
+import type { ActionCaller } from "./types.ts";
+import { DomExtractorError } from "../error.ts";
+import type { ActionRegistry } from "./action-registry.ts"
 
 export class ActionRunner{
 
