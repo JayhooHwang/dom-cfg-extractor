@@ -4,7 +4,7 @@ const PREFIX = "[DOM_EXTRACTOR_ERR]"
 
 export class DomExtractorError extends Error {
     name = "DomExtractorError";
-    occur?:ErrorOccur=undefined
+    occur:ErrorOccur|undefined;
 
     constructor(message:string, cause?:Error, occur?:ErrorOccur){
         super(`${PREFIX} ${getErrorMessage(message, occur)}`, {cause});

@@ -7,5 +7,10 @@ export function isSpecialSelector(selector:string): boolean{
 }
 
 export function getSpecialSelectorResult(selector:string): string{
-    return specialSelectors[selector].call(null)
+    const handle = specialSelectors[selector]
+    if(typeof handle === 'function'){
+        return handle.call(null)
+    }else{
+        return ""
+    }
 }

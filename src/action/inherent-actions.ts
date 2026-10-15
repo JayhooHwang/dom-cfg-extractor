@@ -31,7 +31,7 @@ inherentActions.register('extract', (str:string, pattern:string)=>{
     const serachRgx = new RegExp(pattern);
     const matcher = str.match(serachRgx);
     if(matcher && matcher.length > 1){
-        return matcher[1];
+        return matcher[1] ?? "";
     }
     return "";
 })

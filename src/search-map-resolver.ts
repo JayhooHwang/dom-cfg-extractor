@@ -1,5 +1,5 @@
 import { DomExtractorError } from "./error.ts";
-import type { ActionCaller } from "./types/index.d.ts";
+import type { ActionCaller } from "./action/types.ts";
 
 export type SearchMap = Record<string, MapItem|string>
 
@@ -50,22 +50,22 @@ export type ExtractorSearchingContext = {
     root?: string
 }
 
-export function resolveExcuteMapItem(rawKey:string, map:SearchMap, groupKeys:string[], context:ExtractorSearchingContext):ExcuteMapItem{
+export function resolveExcuteMapItem(rawKey:string, rawItem:string|MapItem, groupKeys:string[], context:ExtractorSearchingContext):ExcuteMapItem{
     const { key, optional } = resolveOptionalKey(rawKey);
-    const item = map[rawKey];
-    if(typeof item === 'string'){
+
+    if(typeof rawItem === 'string'){
         return {
-            selector: item, 
+            selector: rawItem, 
             attr:"innerText",
             group: groupKeys.includes(key),
             key, rawKey, optional, context
         }
     }else{
-        checkMapItem(item);
+        checkMapItem(rawItem);
         return {
             group: groupKeys.includes(key),
-            ...item, 
-            attr: resolveAttrAlias(item.attr ?? "innerText"),
+            ...rawItem, 
+            attr: resolveAttrAlias(rawItem.attr ?? "innerText"),
             key, rawKey, optional, context
         }
     }
