@@ -9,6 +9,13 @@
     "DOM",
     "extractor"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JayhooHwang/dom-cfg-extractor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JayhooHwang/dom-cfg-extractor/issues"
+  },
   "type": "module",
   "exports": {
       ".": {
