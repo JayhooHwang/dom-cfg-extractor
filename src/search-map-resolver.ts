@@ -58,12 +58,13 @@ export function resolveExcuteMapItem(rawKey:string, rawItem:string|MapItem, grou
             selector: rawItem, 
             attr:"innerText",
             group: groupKeys.includes(key),
-            key, rawKey, optional, context
+            key, rawKey, optional, context, actions:[]
         }
     }else{
         checkMapItem(rawItem);
         return {
             group: groupKeys.includes(key),
+            actions: [],
             ...rawItem, 
             attr: resolveAttrAlias(rawItem.attr ?? "innerText"),
             key, rawKey, optional, context
