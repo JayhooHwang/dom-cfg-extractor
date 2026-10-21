@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest'
 import { isSpecialSelector, getSpecialSelectorResult } from '../src/sepcial-selector.ts'
 
@@ -14,7 +15,9 @@ describe("isSpecialSelector", ()=>{
 
 describe("getSpecialSelectorResult", ()=>{
     it("输入 URL, 获取当前页面地址", ()=>{
-        expect(getSpecialSelectorResult("URL")).toBe(window.location.href);
+        const url = "https://www.jhoo.com/dom-cfg-extractor?id=1";
+        (window as any).happyDOM.setURL(url);
+        expect(getSpecialSelectorResult("URL")).toBe(url);
     })
 
     it("输入其它, 返回空字符串", ()=>{
