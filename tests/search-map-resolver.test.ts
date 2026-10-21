@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { type ExcuteMapItem, type MapItem, resolveExcuteMapItem } from '../src/search-map-resolver.ts'
+import { DomExtractorError } from '../src/error.ts';
 
 describe("resolveExcuteMapItem", ()=>{
     function expect_defaultValues(item:ExcuteMapItem){
@@ -65,6 +66,6 @@ describe("resolveExcuteMapItem", ()=>{
     })
 
     it('selector 为空时抛出错误', () => {
-        expect(() => resolveExcuteMapItem('bad', { selector: '' }, [], {})).toThrow('selector 不能为空')
+        expect(() => resolveExcuteMapItem('bad', { selector: '' }, [], {})).toThrow(DomExtractorError)
     })
 })
