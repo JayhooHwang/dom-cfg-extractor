@@ -32,9 +32,7 @@ export class ActionRunner{
                 // Single Action
                 if(Array.isArray(result)){
                     // 对于数组，遍历应用（string[] -> string[]）
-                    for(let item of result){
-                        item = action.run(item, context, ...params);
-                    }
+                    result = result.map(item => action.run(item, context, ...params));
                 }else{
                     // 对于非数组，直接应用（string -> string）
                     result = action.run(result, context, ...params);
