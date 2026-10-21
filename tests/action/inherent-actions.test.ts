@@ -1,9 +1,106 @@
-import { describe } from "vitest";
+import { describe, it, expect } from 'vitest'
+import { inherentActions } from '../../src/action/inherent-actions.ts'
+import { DomExtractorError } from '../../src/error.ts';
 
-describe.todo("split");
+function run(name:string, data:string, ...params:string[]){
+    return inherentActions.getAction(name).run(data, {}, ...params);
+}
 
-describe.todo("replace");
+function runGroup(name:string, data:string[], ...params:string[]){
+    return inherentActions.getAction(name).run(data, {}, ...params);
+}
 
-describe.todo("extract");
+describe("split", ()=>{
+    it("以 group 模式注册", ()=>{
+        expect(inherentActions.getAction('split').applyFor).toBe('group');
+    })
 
-describe.todo("remove");
+    it("按分隔符拆分第一个元素", ()=>{
+        expect(runGroup('split', ['a,b,c'], ',')).toEqual(['a','b','c']);
+    })
+
+    it("数据为空时按原样返回", ()=>{
+        expect(runGroup('split', [], ',')).toEqual([]);
+    })
+
+    it("缺少或传入空分隔符时抛错", ()=>{
+        expect(()=>runGroup('split', ['a,b'])).toThrow(DomExtractorError);
+        expect(()=>runGroup('split', ['a,b'], '')).toThrow(DomExtractorError);
+    })
+    
+    it("传入的数组多于 1 个元素时，报错", ()=>{
+        expect(()=>runGroup('split', ['a b', 'ignored'], ' ')).toThrow(DomExtractorError);
+    })
+})
+
+describe("replace", ()=>{
+    it("以 single 模式注册", ()=>{
+        expect(inherentActions.getAction('replace').applyFor).toBe('single');
+    })
+
+    it("替换所有匹配内容", ()=>{
+        expect(run('replace', 'a-b-c', '-', '+')).toBe('a+b+c');
+    })
+
+    it("from 按正则表达式解释", ()=>{
+        expect(run('replace', 'a1b2c3', '\\d', '$')).toBe('a$b$c$');
+    })
+
+    it("to 为空字符串时删除匹配内容", ()=>{
+        expect(run('replace', 'abc', 'b', '')).toBe('ac');
+    })
+
+    it("缺少参数或 from 为空时抛错", ()=>{
+        expect(()=>run('replace', 'abc')).toThrow(DomExtractorError);
+        expect(()=>run('replace', 'abc', 'a')).toThrow(DomExtractorError);
+        expect(()=>run('replace', 'abc', '', 'x')).toThrow(DomExtractorError);
+    })
+})
+
+describe("extract", ()=>{
+    it("以 single 模式注册", ()=>{
+        expect(inherentActions.getAction('extract').applyFor).toBe('single');
+    })
+
+    it("正则没有捕获组时返回匹配的结果", ()=>{
+        expect(run('extract', 'abc', '\\w+')).toBe('abc');
+    })
+
+    it("正则存在捕获组时，返回第一个捕获组的内容", ()=>{
+        expect(run('extract', 'name: Jay', 'name:\\s*(\\w+)')).toBe('Jay');
+        expect(run('extract', 'a1b2', '(\\d)')).toBe('1');
+        expect(run('extract', 'a1b2', '\\w(1)\\w(2)')).toBe('1');
+    })
+
+    it("没有匹配时返回空字符串", ()=>{
+        expect(run('extract', 'abc', '(\\d)')).toBe('');
+    })
+
+    it("缺少或传入空 pattern 时抛错", ()=>{
+        expect(()=>run('extract', 'abc')).toThrow(DomExtractorError);
+        expect(()=>run('extract', 'abc', '')).toThrow(DomExtractorError);
+    })
+})
+
+describe("remove", ()=>{
+    it("以 single 模式注册", ()=>{
+        expect(inherentActions.getAction('remove').applyFor).toBe('single');
+    })
+
+    it("删除所有匹配内容", ()=>{
+        expect(run('remove', 'a-b-c', '-')).toBe('abc');
+    })
+
+    it("可用正则表达式匹配待删除内容", ()=>{
+        expect(run('remove', 'abc123def', '\\d')).toBe('abcdef');
+    })
+
+    it("没有匹配时原样返回", ()=>{
+        expect(run('remove', 'abc', 'x')).toBe('abc');
+    })
+
+    it("缺少或传入空 target 时抛错", ()=>{
+        expect(()=>run('remove', 'abc')).toThrow(DomExtractorError);
+        expect(()=>run('remove', 'abc', '')).toThrow(DomExtractorError);
+    })
+})

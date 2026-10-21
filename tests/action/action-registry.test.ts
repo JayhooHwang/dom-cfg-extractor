@@ -1,9 +1,104 @@
-import { describe } from "vitest"
+import { describe, it, expect } from 'vitest'
+import { ActionRegistry } from '../../src/action/action-registry.ts'
+import { Action } from '../../src/action/action.ts'
+import { DomExtractorError } from '../../src/error.ts'
 
-describe.todo("ActionRegistry.register/includes");
+describe("ActionRegistry.register/includes", ()=>{
+    it("注册后 includes 返回 true，未注册返回 false", ()=>{
+        const registry = new ActionRegistry();
+        registry.register('upper', (str:string)=>str.toUpperCase());
+        expect(registry.includes('upper')).toBe(true);
+        expect(registry.includes('lower')).toBe(false);
+    })
 
-describe.todo("ActionRegistry.getAction");
+    it("applyFor 默认为 single", ()=>{
+        const registry = new ActionRegistry();
+        registry.register('upper', (str:string)=>str.toUpperCase());
+        expect(registry.getAction('upper').applyFor).toBe('single');
+    })
 
-describe.todo("ActionRegistry[Symbol.iterator]");
+    it("可显式注册 group action", ()=>{
+        const registry = new ActionRegistry();
+        registry.register('sort', (arr:string[])=>[...arr].sort(), 'group');
+        expect(registry.getAction('sort').applyFor).toBe('group');
+    })
 
-describe.todo("ActionRegistry.getMerges");
+    it("同名 action 重复注册时抛错", ()=>{
+        const registry = new ActionRegistry();
+        registry.register('upper', (str:string)=>str.toUpperCase());
+        expect(()=>registry.register('upper', (str:string)=>str.toLowerCase())).toThrow(DomExtractorError);
+    })
+})
+
+describe("ActionRegistry.getAction", ()=>{
+    it("返回注册的 Action 实例", ()=>{
+        const registry = new ActionRegistry();
+        registry.register('upper', (str:string)=>str.toUpperCase());
+        const action = registry.getAction('upper');
+        expect(action).toBeInstanceOf(Action);
+        expect(action.name).toBe('upper');
+        expect(action.run('abc', {})).toBe('ABC');
+    })
+
+    it("获取不存在的 action 时抛错", ()=>{
+        const registry = new ActionRegistry();
+        expect(()=>registry.getAction('missing')).toThrow(DomExtractorError);
+    })
+})
+
+describe("ActionRegistry[Symbol.iterator]", ()=>{
+    it("按注册顺序迭代所有 Action", ()=>{
+        const registry = new ActionRegistry();
+        registry.register('first', (str:string)=>str);
+        registry.register('second', (str:string)=>str);
+        expect([...registry].map(action=>action.name)).toEqual(['first','second']);
+    })
+
+    it("空注册表迭代结果为空", ()=>{
+        expect([...new ActionRegistry()]).toEqual([]);
+    })
+})
+
+describe("ActionRegistry.getMerges", ()=>{
+    it("合并多个注册表", ()=>{
+        const first = new ActionRegistry();
+        first.register('a', (str:string)=>str);
+        const second = new ActionRegistry();
+        second.register('b', (str:string)=>str);
+
+        const merged = ActionRegistry.getMerges(first, second);
+        expect([...merged].map(action=>action.name)).toEqual(['a','b']);
+        expect(merged.getAction('b').run('x', {})).toBe('x');
+    })
+
+    it("忽略 undefined 注册表", ()=>{
+        const registry = new ActionRegistry();
+        registry.register('a', (str:string)=>str);
+
+        const merged = ActionRegistry.getMerges(undefined, registry, undefined);
+        expect([...merged]).toHaveLength(1);
+        expect(merged.includes('a')).toBe(true);
+    })
+
+    it("不传参数时返回空注册表", ()=>{
+        expect([...ActionRegistry.getMerges()]).toEqual([]);
+    })
+
+    it("存在同名 action 时抛错", ()=>{
+        const first = new ActionRegistry();
+        first.register('dup', (str:string)=>str);
+        const second = new ActionRegistry();
+        second.register('dup', (str:string)=>str);
+
+        expect(()=>ActionRegistry.getMerges(first, second)).toThrow(DomExtractorError);
+    })
+
+    it("合并结果与原注册表相互独立", ()=>{
+        const first = new ActionRegistry();
+        first.register('a', (str:string)=>str);
+
+        const merged = ActionRegistry.getMerges(first);
+        merged.register('b', (str:string)=>str);
+        expect(first.includes('b')).toBe(false);
+    })
+})
