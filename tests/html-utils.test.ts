@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { querySelectorDeep } from '../src/html-utils.ts'
+import { querySelectorDeep, retryQuery, clickAndQuery, readPropOrAttrFromElement } from '../src/html-utils.ts'
 
 describe("querySelectorDeep",()=>{
     // iframe 的 about:blank 是异步加载，需等待完成后才能写入内容
@@ -76,8 +76,112 @@ describe("querySelectorDeep",()=>{
     });
 });
 
-describe.todo("retryQuery");
+describe("retryQuery", ()=>{
+    afterEach(()=>{
+        vi.useRealTimers();
+        document.body.innerHTML = '';
+    });
 
-describe.todo("clickAndQuery");
+    it("元素已存在时，立即返回", async ()=>{
+        document.body.innerHTML = '<div id="exists">已存在</div>';
+        const result = await retryQuery(document, '#exists', { interval: 10 });
+        expect(result.textContent).toBe('已存在');
+    });
 
-describe.todo("readPropOrAttrFromElement");
+    it("元素延迟出现时，轮询直到找到", async ()=>{
+        vi.useFakeTimers();
+        setTimeout(()=>{
+            document.body.insertAdjacentHTML('beforeend', '<div id="delay">延迟出现</div>');
+        }, 250);
+
+        const promise = retryQuery(document, '#delay', { interval: 100, maxTry: 5 });
+        await vi.advanceTimersByTimeAsync(1000);
+
+        expect((await promise).textContent).toBe('延迟出现');
+    });
+
+    it("超过最大次数仍找不到时，reject 并提示超时", async ()=>{
+        vi.useFakeTimers();
+        const promise = retryQuery(document, '#never', { interval: 100, maxTry: 3 });
+        const assertion = expect(promise).rejects.toContain('元素查找超时');
+        await vi.advanceTimersByTimeAsync(1000);
+        await assertion;
+    });
+});
+
+describe("clickAndQuery", ()=>{
+    afterEach(()=>{
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+        document.body.innerHTML = '';
+    });
+
+    it("点击后目标元素出现，返回该元素", async ()=>{
+        vi.useFakeTimers();
+        document.body.innerHTML = '<button id="btn">点我</button>';
+        document.getElementById('btn')!.addEventListener('click', ()=>{
+            document.body.insertAdjacentHTML('beforeend', '<div id="target">点击后出现</div>');
+        });
+
+        const result = await clickAndQuery(document, '#target', '#btn');
+
+        await vi.advanceTimersByTimeAsync(1000);
+        expect(result?.textContent).toBe('点击后出现');
+    });
+
+    it("点击触发器不存在时，返回 null", async ()=>{
+        document.body.innerHTML = '<div id="target"></div>';
+        expect(await clickAndQuery(document, '#target', '#not_exists')).toBeNull();
+    });
+
+    it("click() 抛异常时，返回 null 并警告", async ()=>{
+        document.body.innerHTML = '<button id="btn">点我</button>';
+        const btn = document.getElementById('btn') as HTMLElement;
+        btn.click = ()=>{ throw new Error('cannot click'); };
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(()=>{});
+
+        expect(await clickAndQuery(document, '#target', '#btn')).toBeNull();
+        expect(String(warnSpy.mock.calls[0]?.[0])).toContain('不支持直接执行 click()');
+    });
+
+    it("点击后目标未出现，超时后返回 null 并警告", async ()=>{
+        vi.useFakeTimers();
+        document.body.innerHTML = '<button id="btn">点我</button>';
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(()=>{});
+
+        const promise = clickAndQuery(document, '#target', '#btn');
+        await vi.advanceTimersByTimeAsync(4000);
+
+        expect(await promise).toBeNull();
+        expect(String(warnSpy.mock.calls[0]?.[0])).toContain('未出现或查找超时');
+    });
+});
+
+describe("readPropOrAttrFromElement", ()=>{
+    it("读取 property（innerText）", ()=>{
+        const el = document.createElement('div');
+        el.innerHTML = '<p>文本内容</p>';
+        expect(readPropOrAttrFromElement(el, 'innerText')).toBe('文本内容');
+    });
+
+    it("读取 href property 时返回拼接后的完整 URL", ()=>{
+        const root = "https://www.jhoo.com";
+        (window as any).happyDOM.setURL(root);
+        const a = document.createElement('a');
+        a.setAttribute('href', '/some/path');
+
+        const result = readPropOrAttrFromElement(a, 'href');
+        expect(result).toBe(`${root}/some/path`)
+    });
+
+    it("读取普通 attribute", ()=>{
+        const el = document.createElement('div');
+        el.innerHTML = `<div id="inner_div"></div>`
+        expect(readPropOrAttrFromElement(el.firstElementChild as Element, 'id')).toBe('inner_div');
+    });
+
+    it("attribute 不存在时，返回 undefined", ()=>{
+        const el = document.createElement('div');
+        expect(readPropOrAttrFromElement(el, 'id')).toBeUndefined();
+    });
+});
