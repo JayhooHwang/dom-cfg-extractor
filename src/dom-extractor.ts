@@ -93,7 +93,7 @@ function getRawDataByAttr(el:Element|null, attr:string, silent:boolean):string{
         }
         throw new DomExtractorError("找不到指定的 element");
     }
-    const rawData = readPropOrAttrFromElement(el, attr as keyof Element);
+    const rawData = readPropOrAttrFromElement(el, attr);
     if(typeof rawData === 'string'){
         return rawData.trim();
     }else{
