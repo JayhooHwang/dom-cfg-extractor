@@ -104,3 +104,30 @@ describe("remove", ()=>{
         expect(()=>run('remove', 'abc', '')).toThrow(DomExtractorError);
     })
 })
+
+describe("trim", ()=>{
+    it("以 single 模式注册", ()=>{
+        expect(inherentActions.getAction('trim').applyFor).toBe('single');
+    })
+
+    it("去除首尾空格", ()=>{
+        expect(run('trim', '  abc  ')).toBe('abc');
+    })
+
+    it("去除首尾换行和制表符", ()=>{
+        expect(run('trim', '\n\t abc \t\n')).toBe('abc');
+    })
+
+    it("保留中间空白", ()=>{
+        expect(run('trim', '  a b c  ')).toBe('a b c');
+    })
+
+    it("无空白时原样返回", ()=>{
+        expect(run('trim', 'abc')).toBe('abc');
+    })
+
+    it("纯空白字符串返回空字符串", ()=>{
+        expect(run('trim', '   ')).toBe('');
+        expect(run('trim', '\t\n')).toBe('');
+    })
+})

@@ -55,3 +55,5 @@ inherentActions.register('remove', (str:string, target:string)=>{
     const serachRgx = new RegExp(target, 'g');
     return str.replace(serachRgx, "");
 })
+
+inherentActions.register('trim', (str:string)=>str.trim())
