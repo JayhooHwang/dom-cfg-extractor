@@ -4,8 +4,13 @@ import { consoleWarning } from "./error.ts";
  * 深入查找 iframe ( 使用 @ 作为选择器分隔符, 例如："#the_iframe@#the_div_in_frame" )
  */
 export function querySelectorDeep(baseNode: Document|Element, selector:string): Element|null{
+    const contentSelectors = selector.split('@');
+    const emptyIndex = contentSelectors.findIndex(sel => !sel.trim());
+    if(emptyIndex !== -1){
+        consoleWarning(`无法获取 ${selector} 内容：第 ${emptyIndex + 1} 段 selector 为空，请检查 @ 分隔符是否拼接完整`)
+        return null;
+    }
     try{
-        const contentSelectors = selector.split('@');
         return contentSelectors.reduce<Document|Element|null>((parent, sel)=>{
             if(parent instanceof HTMLIFrameElement){
                 return parent.contentDocument?.querySelector(sel) || null;
