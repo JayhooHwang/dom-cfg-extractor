@@ -74,6 +74,27 @@ describe("querySelectorDeep",()=>{
         expect(warnSpy).toHaveBeenCalledOnce();
         expect(String(warnSpy.mock.calls[0]?.[0])).toContain('跨域限制');
     });
+
+    it("未拼完的深层查找器包含空片段时，返回 null 并给出准确警告", ()=>{
+        const cases:[selector:string, emptyIndex:number][] = [
+            ['#the_iframe@', 2],   // 末尾多写了 @
+            ['@#the_iframe', 1]    // 开头多写了 @
+        ];
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(()=>{});
+
+        for(const [selector] of cases){
+            expect(querySelectorDeep(document, selector)).toBeNull();
+        }
+
+        expect(warnSpy).toHaveBeenCalledTimes(cases.length);
+        cases.forEach(([selector, emptyIndex], i)=>{
+            const message = String(warnSpy.mock.calls[i]?.[0]);
+            expect(message).toContain(`无法获取 ${selector} 内容`);
+            expect(message).toContain(`第 ${emptyIndex} 段 selector 为空`);
+            // 空片段属于配置拼接错误，不应再提示跨域
+            expect(message).not.toContain("跨域");
+        });
+    });
 });
 
 describe("retryQuery", ()=>{

@@ -70,5 +70,17 @@ describe("Action.run", ()=>{
         // @ts-expect-error 模拟纯 JS 下不传参调用
         expect(()=>action.run()).toThrow(DomExtractorError);
     })
+
+    it("action 使用了不存在的上下文", ()=>{
+        let seen: unknown = "未读取上下文";
+        const action = new Action('withContext', 'single', function(this:Record<string, unknown>, str:string){
+            seen = this.prefix;
+            return str;
+        });
+
+        // Action 层不校验 context，缺失的键以 undefined 传入，由 handle 自行兜底
+        expect(action.run('x', {})).toBe('x');
+        expect(seen).toBeUndefined();
+    })
     
 })
