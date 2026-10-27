@@ -80,6 +80,7 @@ describe("DomExtractor.search", ()=>{
     afterEach(()=>{
         disableButton();
         vi.useRealTimers();
+        vi.restoreAllMocks();
     })
 
     describe("基本用法", ()=>{
@@ -463,5 +464,215 @@ describe("DomExtractor.search", ()=>{
         });
     });
 
-    describe.todo("错误使用及报错", ()=>{});
+    describe("错误使用及报错", ()=>{
+        describe("非法参数", ()=>{
+            it("dom 不是 Document 或 Element 时，报错", async ()=>{
+                const extractor = new DomExtractor();
+
+                await expect(extractor.search(null as any, { name: ".name" }))
+                    .rejects.toThrow("dom 必须是 Document 或 Element");
+                await expect(extractor.search("document" as any, { name: ".name" }))
+                    .rejects.toThrow("dom 必须是 Document 或 Element");
+            });
+
+            it("map 不是 plain object 时，报错", async ()=>{
+                const extractor = new DomExtractor();
+                const badMaps:any[] = [null, [], ["name"], new Date()];
+
+                for(const badMap of badMaps){
+                    await expect(extractor.search(document.body, badMap))
+                        .rejects.toThrow("map 必须是 plain object");
+                }
+            });
+
+            it("map 传空对象时，返回空对象", async ()=>{
+                const extractor = new DomExtractor();
+
+                const result = await extractor.search(document.body, {});
+
+                expect(result).toEqual({});
+            });
+        });
+
+        describe("selector 相关", ()=>{
+            it("map.selector 为空或缺失时，报错", async ()=>{
+                const extractor = new DomExtractor();
+                const badMaps:any[] = [
+                    { name: { selector: "" } },
+                    { name: { selector: "   " } },   // 纯空白同样视作空
+                    { name: { attr: "innerText" } }, // 缺失 selector
+                    { name: "" }                     // 字符串简写形式为空
+                ];
+
+                for(const badMap of badMaps){
+                    await expect(extractor.search(document.body, badMap))
+                        .rejects.toThrow("selector 不能为空");
+                }
+            });
+
+            it("map.selector 找不到对应元素时，报错", async ()=>{
+                const extractor = new DomExtractor();
+
+                await expect(extractor.search(document.body, {
+                    "name": ".name",
+                    "ghost": ".ghost"
+                })).rejects.toThrow("找不到指定的 element");
+            });
+
+            it("元素存在但 map.attr 属性名取不到值时，报错", async ()=>{
+                const extractor = new DomExtractor();
+
+                await expect(extractor.search(document.body, {
+                    "name": { "selector": ".name", "attr": "data-not-exist" }
+                })).rejects.toThrow("无法从指定的 element 中正确获取 data-not-exist 属性");
+            });
+
+            it("iframe 跨域无法访问 contentDocument 时，打印警告并按找不到元素报错", async ()=>{
+                // happy-dom 不模拟跨域，参照浏览器行为用抛 SecurityError 的 getter 模拟跨域访问被拒
+                const iframe = document.querySelector(".additional-info iframe") as HTMLIFrameElement;
+                Object.defineProperty(iframe, "contentDocument", {
+                    get(){
+                        throw new DOMException("Blocked a frame with origin from accessing a cross-origin frame.", "SecurityError");
+                    }
+                });
+                const warnSpy = vi.spyOn(console, "warn").mockImplementation(()=>{});
+
+                const extractor = new DomExtractor();
+                await expect(extractor.search(document.body, {
+                    "attendanceRate": ".additional-info iframe@dd:nth-of-type(1)"
+                })).rejects.toThrow("找不到指定的 element");
+
+                expect(warnSpy).toHaveBeenCalledOnce();
+                expect(String(warnSpy.mock.calls[0]?.[0])).toContain("跨域限制");
+            });
+        });
+
+        describe("action 相关", ()=>{
+            it("自定义 action 中引用不存在的上下文时，只能拿到 undefined", async ()=>{
+                const seen:(string|undefined)[] = [];
+                const actionRegistry = new ActionRegistry();
+                actionRegistry.register("read-context", function(this:Record<string, string|undefined>, str:string){
+                    seen.push(this.cdn);
+                    return str;
+                });
+                // 未通过 context 配置 cdn
+                const extractor = new DomExtractor({ actionRegistry });
+
+                const result = await extractor.search(document.body, {
+                    "name": { "selector": ".name", "actions": ["read-context"] }
+                });
+
+                expect(result).toEqual({ name: "Li Lei" });
+                expect(seen).toEqual([undefined]);
+            });
+
+            it("map.actions 配置为非数组时，报错", async ()=>{
+                const extractor = new DomExtractor();
+
+                await expect(extractor.search(document.body, {
+                    "name": { "selector": ".name", "actions": "trim" }
+                } as any)).rejects.toThrow("actions 必须是数组");
+            });
+
+            it("map.actions 使用未注册的 action 名时，报错", async ()=>{
+                const extractor = new DomExtractor();
+
+                await expect(extractor.search(document.body, {
+                    "name": { "selector": ".name", "actions": ["not-registered"] }
+                })).rejects.toThrow(`Action "not-registered" does not exist`);
+            });
+
+            it("map.action 对象缺少 name 时，报错", async ()=>{
+                const extractor = new DomExtractor();
+
+                await expect(extractor.search(document.body, {
+                    "name": { "selector": ".name", "actions": [{ "params": [] }] }
+                } as any)).rejects.toThrow("action.name is required and must be a string");
+            });
+
+            it("map.action 的 params 配置为非数组时，报错", async ()=>{
+                const extractor = new DomExtractor();
+
+                await expect(extractor.search(document.body, {
+                    "name": { "selector": ".name", "actions": [{ "name": "trim", "params": "x" }] }
+                } as any)).rejects.toThrow("action.params must be an array");
+            });
+
+            it("group action 应用到非数组值(未在 groupKeys 中声明)时，报错", async ()=>{
+                const extractor = new DomExtractor();  // interests 未声明为 groupKeys，取到的是字符串
+
+                await expect(extractor.search(document.body, {
+                    "interests": { "selector": ".interests", "actions": ["split"] }
+                })).rejects.toThrow("Action split 不能应用于非数组");
+            });
+
+            it("map.action 执行过程中自身抛出的异常，被包装为 DomExtractorError 后抛出", async ()=>{
+                const actionRegistry = new ActionRegistry();
+                actionRegistry.register("boom", (str:string):string=>{
+                    throw new Error("自定义 action 执行失败");
+                });
+                const extractor = new DomExtractor({ actionRegistry });
+
+                const error = await extractor.search(document.body, {
+                    "name": { "selector": ".name", "actions": ["boom"] }
+                }).catch(ex=>ex);
+
+                expect(error).toBeInstanceOf(DomExtractorError);
+                expect(error.message).toContain("自定义 action 执行失败");
+                expect(error.cause).toBeInstanceOf(Error);
+            });
+        });
+
+        describe("click 相关", ()=>{
+            it("map.click 指定的按钮 selector 不存在时，跳过点击，按找不到目标元素报错", async ()=>{
+                const warnSpy = vi.spyOn(console, "warn").mockImplementation(()=>{});
+                const extractor = new DomExtractor();
+
+                await expect(extractor.search(document.body, {
+                    "scoreOfOperatingSystems": {
+                        "selector": "#major_course_scores tbody td:nth-child(2)",
+                        "click": "#btn_not_exists"
+                    }
+                })).rejects.toThrow("找不到指定的 element");
+
+                // 触发器不存在时直接跳过点击，不打印 Click 警告
+                expect(warnSpy).not.toHaveBeenCalled();
+            });
+
+            it("map.click 后目标元素一直未出现(轮询超时)时，打印 Click 失败警告并报错", async ()=>{
+                vi.useFakeTimers();
+                const warnSpy = vi.spyOn(console, "warn").mockImplementation(()=>{});
+
+                const extractor = new DomExtractor();
+                const searchPromise = extractor.search(document.body, {
+                    "scoreOfOperatingSystems": {
+                        "selector": "#major_course_scores tbody td:nth-child(2)",
+                        "click": "#btn_load_scores"
+                    }
+                });
+
+                // 按钮存在但未绑定点击逻辑，目标元素不会出现；等待轮询耗尽 (默认 6 × 500ms)
+                const assertion = expect(searchPromise).rejects.toThrow("找不到指定的 element");
+                await vi.advanceTimersByTimeAsync(4000);
+
+                await assertion;
+                expect(String(warnSpy.mock.calls[0]?.[0])).toContain("未出现或查找超时");
+            });
+        });
+
+        it("报错信息中带 (occur key=xxx)，可定位到出错的配置键", async ()=>{
+            const extractor = new DomExtractor();
+
+            const error = await extractor.search(document.body, {
+                "name": ".name",
+                "ghost": { "selector": ".ghost" }
+            }).catch(ex=>ex);
+
+            expect(error).toBeInstanceOf(DomExtractorError);
+            expect(error.message).toContain("(occur key=ghost)");
+            expect(error.occur?.key).toBe("ghost");
+            // 错误前缀只出现一次，避免层层包装后重复
+            expect(error.message.match(/\[DOM_EXTRACTOR_ERR\]/g)).toHaveLength(1);
+        });
+    });
 });
