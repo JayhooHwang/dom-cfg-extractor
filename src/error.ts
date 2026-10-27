@@ -1,4 +1,4 @@
-type ErrorOccur = {key?:string,item?:any}
+export type ErrorOccur = {key?:string,item?:any}
 
 const PREFIX = "[DOM_EXTRACTOR_ERR]"
 
@@ -34,7 +34,9 @@ function getErrorMessage(message:string, occur?:ErrorOccur){
 
 export function resolveCatch(ex:unknown, occur?:ErrorOccur){
     if(ex instanceof Error){
-        throw new DomExtractorError(ex.message, ex, occur);
+        //已带前缀的 DomExtractorError 作为 cause 时，避免前缀重复
+        const message = ex instanceof DomExtractorError ? ex.message.slice(PREFIX.length).trim() : ex.message;
+        throw new DomExtractorError(message, ex, occur);
     }else{
         throw new DomExtractorError(String(ex), undefined, occur);
     }
