@@ -55,6 +55,9 @@ export function resolveExcuteMapItem(rawKey:string, rawItem:string|MapItem, grou
     const { key, optional } = resolveOptionalKey(rawKey);
 
     if(typeof rawItem === 'string'){
+        if(!rawItem.trim()){
+            throw new DomExtractorError("selector 不能为空");
+        }
         return {
             selector: rawItem, 
             attr:"innerText",
@@ -87,7 +90,7 @@ function resolveOptionalKey(rawKey:string){
 
 function checkMapItem(mapItem:MapItem):void{
     let {selector, actions} = mapItem;
-    if(!selector){
+    if(!selector || !selector.trim()){
         throw new DomExtractorError("selector 不能为空");
     }
     if(!!actions && !Array.isArray(actions)){
