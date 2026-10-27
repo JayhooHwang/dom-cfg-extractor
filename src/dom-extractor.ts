@@ -1,7 +1,7 @@
 import { ActionRegistry } from "./action/action-registry.ts";
 import { ActionRunner } from "./action/action-runner.ts";
 import { inherentActions } from "./action/inherent-actions.ts";
-import { DomExtractorError, resolveCatch } from "./error.ts";
+import { DomExtractorError, resolveCatch, type ErrorOccur } from "./error.ts";
 import { clickAndQuery, querySelectorDeep, readPropOrAttrFromElement } from "./html-utils.ts";
 import { resolveExcuteMapItem, type ExcuteMapItem, type ExtractorSearchingContext, type SearchMap } from "./search-map-resolver.ts";
 import { getSpecialSelectorResult, isSpecialSelector } from "./sepcial-selector.ts";
@@ -24,10 +24,17 @@ export class DomExtractor{
     }
 
     async search(dom:Document|Element, map:SearchMap): Promise<Record<string, string|string[]>|null>{
-        let currentItem = {};
+        if(!isQueryableNode(dom)){
+            throw new DomExtractorError("dom 必须是 Document 或 Element");
+        }
+        if(!isPlainObject(map)){
+            throw new DomExtractorError("map 必须是 plain object");
+        }
+        let currentItem:ErrorOccur = { key: "" };
         try{
             const resultObj:Record<string, string|string[]> = {};
             for (const [rawKey, rawItem] of Object.entries(map)){
+                currentItem = { key: rawKey, item: rawItem };
                 const item = resolveExcuteMapItem(rawKey, rawItem, this.#groupKeys, this.#context);
 
                 if(item.click){
@@ -58,6 +65,18 @@ export class DomExtractor{
         }
         return result;
     }
+}
+
+function isQueryableNode(node:unknown):node is Document|Element{
+    if(!node || typeof node !== 'object') return false;
+    const candidate = node as Pick<Element, "querySelector"|"querySelectorAll">;
+    return typeof candidate.querySelector === 'function' && typeof candidate.querySelectorAll === 'function';
+}
+
+function isPlainObject(value:unknown):value is Record<string, unknown>{
+    if(typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+    const proto = Object.getPrototypeOf(value);
+    return proto === Object.prototype || proto === null;
 }
 
 /**
