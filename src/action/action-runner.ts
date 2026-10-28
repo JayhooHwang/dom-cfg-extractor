@@ -26,7 +26,7 @@ export class ActionRunner{
                     result = action.run(result, context, ...params);
                 }else{
                     // 对于非数组，报错（string -> string[]）
-                    throw new DomExtractorError(`Action ${action.name} 不能应用于非数组`)
+                    throw new DomExtractorError("ACTION_TYPE_MISMATCH", `Action ${action.name} 不能应用于非数组`)
                 }
             }else{
                 // Single Action
@@ -56,10 +56,10 @@ function resolveActionCaller(actionCaller:ActionCaller){
     const params = caller.params ?? [];
 
     if(typeof name !== 'string' || !name.trim().length){
-        throw new DomExtractorError("action.name is required and must be a string");
+        throw new DomExtractorError("INVALID_ACTION_NAME", "action.name is required and must be a string");
     }
     if(!Array.isArray(params)){
-        throw new DomExtractorError("action.params must be an array");
+        throw new DomExtractorError("INVALID_ACTION_PARAMS", "action.params must be an array");
     }
     return { name, params };
 }

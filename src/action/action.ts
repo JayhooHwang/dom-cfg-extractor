@@ -37,13 +37,13 @@ export class Action{
     run(rawData:string[], context:object, ...params:string[]):string[]
     run(rawData:ActionData, context:object, ...params:string[]){
         if(!Array.isArray(rawData) && typeof rawData !== 'string'){
-            throw new DomExtractorError(`Action "${this.#name}" can only process arrays`);
+            throw new DomExtractorError("INVALID_ACTION_DATA", `Action "${this.#name}" can only process arrays`);
         }
         if(Array.isArray(rawData) && this.#applyFor === 'single'){
-            throw new DomExtractorError(`Action ${this.#name} cannot be used to process arrays`);
+            throw new DomExtractorError("ACTION_TYPE_MISMATCH", `Action ${this.#name} cannot be used to process arrays`);
         }
         if(!Array.isArray(rawData) && this.#applyFor === 'group'){
-            throw new DomExtractorError(`Action ${this.#name} cannot be used to process single text`);
+            throw new DomExtractorError("ACTION_TYPE_MISMATCH", `Action ${this.#name} cannot be used to process single text`);
         }
         if(typeof rawData === 'string'){
             return (this.#handle as SingleActionHandle).call(context, rawData, ...params);
@@ -55,12 +55,12 @@ export class Action{
 
 function _checkConstructor(name:string, applyFor:ApplyFor, handle:ActionHandle){
     if(typeof name !== 'string'){
-        throw new DomExtractorError("name must be of type string");
+        throw new DomExtractorError("INVALID_ACTION_NAME", "name must be of type string");
     }
     if(applyFor !== 'single' && applyFor !== 'group'){
-        throw new DomExtractorError("applyFor must be either 'single' or 'group'");
+        throw new DomExtractorError("INVALID_APPLY_FOR", "applyFor must be either 'single' or 'group'");
     }
     if(typeof handle !== 'function' || handle.length === 0){
-        throw new DomExtractorError("action handler must be a function with at least one parameter");
+        throw new DomExtractorError("INVALID_ACTION_HANDLE", "action handler must be a function with at least one parameter");
     }
 }

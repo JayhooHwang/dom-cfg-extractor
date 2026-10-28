@@ -16,7 +16,7 @@ export class ActionRegistry{
     getAction(name:string){
         const action = this.#registry.get(name);
         if(!action){
-            throw new DomExtractorError(`Action "${ name }" does not exist`);
+            throw new DomExtractorError("ACTION_NOT_FOUND", `Action "${ name }" does not exist`);
         }
         return action;
     }
@@ -37,7 +37,7 @@ export class ActionRegistry{
 
     #duplicateNameCheck(name:string):void{
         if(this.includes(name)){
-            throw new DomExtractorError(`action ${name} has already been registered`);
+            throw new DomExtractorError("ACTION_DUPLICATE", `action ${name} has already been registered`);
         }
     }
 

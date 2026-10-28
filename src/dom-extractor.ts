@@ -25,10 +25,10 @@ export class DomExtractor{
 
     async search(dom:Document|Element, map:SearchMap): Promise<Record<string, string|string[]>>{
         if(!isQueryableNode(dom)){
-            throw new DomExtractorError("dom 必须是 Document 或 Element");
+            throw new DomExtractorError("INVALID_DOM", "dom 必须是 Document 或 Element");
         }
         if(!isPlainObject(map)){
-            throw new DomExtractorError("map 必须是 plain object");
+            throw new DomExtractorError("INVALID_MAP", "map 必须是 plain object");
         }
         let currentItem:ErrorOccur = { key: "" };
         try{
@@ -109,12 +109,12 @@ function getRawDataByAttr(el:Element|null, attr:string, silent:boolean):string{
         if(silent){
             return "";
         }
-        throw new DomExtractorError("找不到指定的 element");
+        throw new DomExtractorError("ELEMENT_NOT_FOUND", "找不到指定的 element");
     }
     const rawData = readPropOrAttrFromElement(el, attr);
     if(typeof rawData === 'string'){
         return rawData.trim();
     }else{
-        throw new DomExtractorError(`无法从指定的 element 中正确获取 ${attr} 属性`);
+        throw new DomExtractorError("ATTR_READ_FAILED", `无法从指定的 element 中正确获取 ${attr} 属性`);
     }
 }

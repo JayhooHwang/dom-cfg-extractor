@@ -56,7 +56,7 @@ export function resolveExcuteMapItem(rawKey:string, rawItem:string|MapItem, grou
 
     if(typeof rawItem === 'string'){
         if(!rawItem.trim()){
-            throw new DomExtractorError("selector 不能为空");
+            throw new DomExtractorError("SELECTOR_EMPTY", "selector 不能为空");
         }
         return {
             selector: rawItem, 
@@ -91,10 +91,10 @@ function resolveOptionalKey(rawKey:string){
 function checkMapItem(mapItem:MapItem):void{
     let {selector, actions} = mapItem;
     if(!selector || !selector.trim()){
-        throw new DomExtractorError("selector 不能为空");
+        throw new DomExtractorError("SELECTOR_EMPTY", "selector 不能为空");
     }
     if(!!actions && !Array.isArray(actions)){
-        throw new DomExtractorError("actions 必须是数组");
+        throw new DomExtractorError("INVALID_ACTIONS", "actions 必须是数组");
     }
 }
 
