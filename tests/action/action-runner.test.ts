@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { ActionRegistry } from '../../src/action/action-registry.ts'
 import { ActionRunner } from '../../src/action/action-runner.ts'
-import { DomExtractorError } from '../../src/error.ts'
+import { expectThrowsCode } from '../helpers/error.ts'
 
 function createRegistry(){
     const registry = new ActionRegistry();
@@ -82,20 +82,20 @@ describe("ActionRunner.run", ()=>{
     })
 
     it("group action 应用于字符串时抛错", ()=>{
-        expect(()=>runner.run('a,b', ['sort'], {})).toThrow(DomExtractorError);
+        expectThrowsCode(()=>runner.run('a,b', ['sort'], {}), "ACTION_TYPE_MISMATCH");
     })
 
     it("action 未注册时抛错", ()=>{
-        expect(()=>runner.run('abc', ['missing'], {})).toThrow(DomExtractorError);
+        expectThrowsCode(()=>runner.run('abc', ['missing'], {}), "ACTION_NOT_FOUND");
     })
 
     it("action name 为空或空白时抛错", ()=>{
-        expect(()=>runner.run('abc', [''], {})).toThrow(DomExtractorError);
-        expect(()=>runner.run('abc', ['   '], {})).toThrow(DomExtractorError);
+        expectThrowsCode(()=>runner.run('abc', [''], {}), "INVALID_ACTION_NAME");
+        expectThrowsCode(()=>runner.run('abc', ['   '], {}), "INVALID_ACTION_NAME");
     })
 
     it("action params 不是数组时抛错", ()=>{
         // @ts-expect-error 模拟纯 JS 下错误传参
-        expect(()=>runner.run('abc', [{name:'upper', params:'x'}], {})).toThrow(DomExtractorError);
+        expectThrowsCode(()=>runner.run('abc', [{name:'upper', params:'x'}], {}), "INVALID_ACTION_PARAMS");
     })
 })

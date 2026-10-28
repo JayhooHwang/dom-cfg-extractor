@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { DomExtractor } from "../src/dom-extractor.ts";
 import { ActionRegistry } from "../src/action/action-registry.ts";
-import { DomExtractorError } from "../src/error.ts";
+import { expectRejectsCode } from "./helpers/error.ts";
 import liLeiHtml from "./fixtures/student-info-lilei.html?raw";
 import hanMeimeiHtml from "./fixtures/student-info-hanmeimei.html?raw";
 
@@ -183,7 +183,7 @@ describe("DomExtractor.search", ()=>{
                 "selfIntroduction": "dd.self-introduction"  //对于 Self Introduction 有些学生填写了，而有些学生没有填写
             }
 
-            await expect(extractor.search(document.body, searchMap)).rejects.toThrow(DomExtractorError);
+            await expectRejectsCode(extractor.search(document.body, searchMap), "ELEMENT_NOT_FOUND");
         });
 
         it("通过设置 key? 可避免报错，并且返回空字符串", async () => {
@@ -490,10 +490,8 @@ describe("DomExtractor.search", ()=>{
             it("dom 不是 Document 或 Element 时，报错", async ()=>{
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(null as any, { name: ".name" }))
-                    .rejects.toThrow("dom 必须是 Document 或 Element");
-                await expect(extractor.search("document" as any, { name: ".name" }))
-                    .rejects.toThrow("dom 必须是 Document 或 Element");
+                await expectRejectsCode(extractor.search(null as any, { name: ".name" }), "INVALID_DOM");
+                await expectRejectsCode(extractor.search("document" as any, { name: ".name" }), "INVALID_DOM");
             });
 
             it.each([
@@ -504,8 +502,7 @@ describe("DomExtractor.search", ()=>{
             ])("map 为 %s 时，报错", async (_label, badMap) => {
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(document.body, badMap as any))
-                    .rejects.toThrow("map 必须是 plain object");
+                await expectRejectsCode(extractor.search(document.body, badMap as any), "INVALID_MAP");
             });
 
             it("map 传空对象时，返回空对象", async ()=>{
@@ -526,25 +523,24 @@ describe("DomExtractor.search", ()=>{
             ])("非法 map：%s", async (_label, badMap) => {
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(document.body, badMap as any))
-                    .rejects.toThrow("selector 不能为空");
+                await expectRejectsCode(extractor.search(document.body, badMap as any), "SELECTOR_EMPTY");
             });
 
             it("map.selector 找不到对应元素时，报错", async ()=>{
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(document.body, {
+                await expectRejectsCode(extractor.search(document.body, {
                     "name": ".name",
                     "ghost": ".ghost"
-                })).rejects.toThrow("找不到指定的 element");
+                }), "ELEMENT_NOT_FOUND");
             });
 
             it("元素存在但 map.attr 属性名取不到值时，报错", async ()=>{
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(document.body, {
+                await expectRejectsCode(extractor.search(document.body, {
                     "name": { "selector": ".name", "attr": "data-not-exist" }
-                })).rejects.toThrow("无法从指定的 element 中正确获取 data-not-exist 属性");
+                }), "ATTR_READ_FAILED");
             });
             
             it("group 选择器找不到元素时，返回空数组而不是报错", async ()=>{
@@ -566,11 +562,10 @@ describe("DomExtractor.search", ()=>{
                 });
 
                 // group 走 querySelectorAll，不解析 @ 分隔符，因此整串被当作非法 CSS selector
-                const error = await extractor.search(document.body, {
+                const error = await expectRejectsCode(extractor.search(document.body, {
                     "attendanceRate": ".additional-info iframe@dd:nth-of-type(1)"
-                }).catch(ex=>ex);
+                }), "UNKNOWN_ERROR");
 
-                expect(error).toBeInstanceOf(DomExtractorError);
                 expect(error.occur?.key).toBe("attendanceRate");
             });
 
@@ -585,9 +580,9 @@ describe("DomExtractor.search", ()=>{
                 const warnSpy = vi.spyOn(console, "warn").mockImplementation(()=>{});
 
                 const extractor = new DomExtractor();
-                await expect(extractor.search(document.body, {
+                await expectRejectsCode(extractor.search(document.body, {
                     "attendanceRate": ".additional-info iframe@dd:nth-of-type(1)"
-                })).rejects.toThrow("找不到指定的 element");
+                }), "ELEMENT_NOT_FOUND");
 
                 expect(warnSpy).toHaveBeenCalledOnce();
                 expect(String(warnSpy.mock.calls[0]?.[0])).toContain("跨域限制");
@@ -616,41 +611,41 @@ describe("DomExtractor.search", ()=>{
             it("map.actions 配置为非数组时，报错", async ()=>{
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(document.body, {
+                await expectRejectsCode(extractor.search(document.body, {
                     "name": { "selector": ".name", "actions": "trim" }
-                } as any)).rejects.toThrow("actions 必须是数组");
+                } as any), "INVALID_ACTIONS");
             });
 
             it("map.actions 使用未注册的 action 名时，报错", async ()=>{
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(document.body, {
+                await expectRejectsCode(extractor.search(document.body, {
                     "name": { "selector": ".name", "actions": ["not-registered"] }
-                })).rejects.toThrow(`Action "not-registered" does not exist`);
+                }), "ACTION_NOT_FOUND");
             });
 
             it("map.action 对象缺少 name 时，报错", async ()=>{
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(document.body, {
+                await expectRejectsCode(extractor.search(document.body, {
                     "name": { "selector": ".name", "actions": [{ "params": [] }] }
-                } as any)).rejects.toThrow("action.name is required and must be a string");
+                } as any), "INVALID_ACTION_NAME");
             });
 
             it("map.action 的 params 配置为非数组时，报错", async ()=>{
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(document.body, {
+                await expectRejectsCode(extractor.search(document.body, {
                     "name": { "selector": ".name", "actions": [{ "name": "trim", "params": "x" }] }
-                } as any)).rejects.toThrow("action.params must be an array");
+                } as any), "INVALID_ACTION_PARAMS");
             });
 
             it("group action 应用到非数组值(未在 groupKeys 中声明)时，报错", async ()=>{
                 const extractor = new DomExtractor();  // interests 未声明为 groupKeys，取到的是字符串
 
-                await expect(extractor.search(document.body, {
+                await expectRejectsCode(extractor.search(document.body, {
                     "interests": { "selector": ".interests", "actions": ["split"] }
-                })).rejects.toThrow("Action split 不能应用于非数组");
+                }), "ACTION_TYPE_MISMATCH");
             });
 
             it("map.action 执行过程中自身抛出的异常，被包装为 DomExtractorError 后抛出", async ()=>{
@@ -660,13 +655,13 @@ describe("DomExtractor.search", ()=>{
                 });
                 const extractor = new DomExtractor({ actionRegistry });
 
-                const error = await extractor.search(document.body, {
+                const error = await expectRejectsCode(extractor.search(document.body, {
                     "name": { "selector": ".name", "actions": ["boom"] }
-                }).catch(ex=>ex);
+                }), "UNKNOWN_ERROR");
 
-                expect(error).toBeInstanceOf(DomExtractorError);
-                expect(error.message).toContain("自定义 action 执行失败");
+                // 原始异常保留在 cause 中
                 expect(error.cause).toBeInstanceOf(Error);
+                expect((error.cause as Error).message).toBe("自定义 action 执行失败");
             });
         });
 
@@ -675,12 +670,12 @@ describe("DomExtractor.search", ()=>{
                 const warnSpy = vi.spyOn(console, "warn").mockImplementation(()=>{});
                 const extractor = new DomExtractor();
 
-                await expect(extractor.search(document.body, {
+                await expectRejectsCode(extractor.search(document.body, {
                     "scoreOfOperatingSystems": {
                         "selector": "#major_course_scores tbody td:nth-child(2)",
                         "click": "#btn_not_exists"
                     }
-                })).rejects.toThrow("找不到指定的 element");
+                }), "ELEMENT_NOT_FOUND");
 
                 // 触发器不存在时直接跳过点击，不打印 Click 警告
                 expect(warnSpy).not.toHaveBeenCalled();
@@ -699,7 +694,7 @@ describe("DomExtractor.search", ()=>{
                 });
 
                 // 按钮存在但未绑定点击逻辑，目标元素不会出现；等待轮询耗尽 (默认 6 × 500ms)
-                const assertion = expect(searchPromise).rejects.toThrow("找不到指定的 element");
+                const assertion = expectRejectsCode(searchPromise, "ELEMENT_NOT_FOUND");
                 await vi.advanceTimersByTimeAsync(4000);
 
                 await assertion;
@@ -707,16 +702,14 @@ describe("DomExtractor.search", ()=>{
             });
         });
 
-        it("报错信息中带 (occur key=xxx)，可定位到出错的配置键", async ()=>{
+        it("多层包装后错误前缀不重复，并携带 occur key 定位配置键", async ()=>{
             const extractor = new DomExtractor();
 
-            const error = await extractor.search(document.body, {
+            const error = await expectRejectsCode(extractor.search(document.body, {
                 "name": ".name",
                 "ghost": { "selector": ".ghost" }
-            }).catch(ex=>ex);
+            }), "ELEMENT_NOT_FOUND");
 
-            expect(error).toBeInstanceOf(DomExtractorError);
-            expect(error.message).toContain("(occur key=ghost)");
             expect(error.occur?.key).toBe("ghost");
             // 错误前缀只出现一次，避免层层包装后重复
             expect(error.message.match(/\[DOM_EXTRACTOR_ERR\]/g)).toHaveLength(1);

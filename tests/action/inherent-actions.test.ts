@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { inherentActions } from '../../src/action/inherent-actions.ts'
-import { DomExtractorError } from '../../src/error.ts';
+import { expectThrowsCode } from '../helpers/error.ts';
 
 function run(name:string, data:string, ...params:string[]){
     return inherentActions.getAction(name).run(data, {}, ...params);
@@ -24,12 +24,12 @@ describe("split", ()=>{
     })
 
     it("缺少或传入空分隔符时抛错", ()=>{
-        expect(()=>runGroup('split', ['a,b'])).toThrow(DomExtractorError);
-        expect(()=>runGroup('split', ['a,b'], '')).toThrow(DomExtractorError);
+        expectThrowsCode(()=>runGroup('split', ['a,b']), "ACTION_PARAMS_REQUIRED");
+        expectThrowsCode(()=>runGroup('split', ['a,b'], ''), "ACTION_PARAMS_REQUIRED");
     })
     
     it("传入的数组多于 1 个元素时，报错", ()=>{
-        expect(()=>runGroup('split', ['a b', 'ignored'], ' ')).toThrow(DomExtractorError);
+        expectThrowsCode(()=>runGroup('split', ['a b', 'ignored'], ' '), "ACTION_TYPE_MISMATCH");
     })
 })
 
@@ -51,9 +51,9 @@ describe("replace", ()=>{
     })
 
     it("缺少参数或 from 为空时抛错", ()=>{
-        expect(()=>run('replace', 'abc')).toThrow(DomExtractorError);
-        expect(()=>run('replace', 'abc', 'a')).toThrow(DomExtractorError);
-        expect(()=>run('replace', 'abc', '', 'x')).toThrow(DomExtractorError);
+        expectThrowsCode(()=>run('replace', 'abc'), "ACTION_PARAMS_REQUIRED");
+        expectThrowsCode(()=>run('replace', 'abc', 'a'), "ACTION_PARAMS_REQUIRED");
+        expectThrowsCode(()=>run('replace', 'abc', '', 'x'), "ACTION_PARAMS_REQUIRED");
     })
 })
 
@@ -77,8 +77,8 @@ describe("extract", ()=>{
     })
 
     it("缺少或传入空 pattern 时抛错", ()=>{
-        expect(()=>run('extract', 'abc')).toThrow(DomExtractorError);
-        expect(()=>run('extract', 'abc', '')).toThrow(DomExtractorError);
+        expectThrowsCode(()=>run('extract', 'abc'), "ACTION_PARAMS_REQUIRED");
+        expectThrowsCode(()=>run('extract', 'abc', ''), "ACTION_PARAMS_REQUIRED");
     })
 })
 
@@ -100,8 +100,8 @@ describe("remove", ()=>{
     })
 
     it("缺少或传入空 target 时抛错", ()=>{
-        expect(()=>run('remove', 'abc')).toThrow(DomExtractorError);
-        expect(()=>run('remove', 'abc', '')).toThrow(DomExtractorError);
+        expectThrowsCode(()=>run('remove', 'abc'), "ACTION_PARAMS_REQUIRED");
+        expectThrowsCode(()=>run('remove', 'abc', ''), "ACTION_PARAMS_REQUIRED");
     })
 })
 

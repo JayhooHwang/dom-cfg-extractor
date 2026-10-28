@@ -1,26 +1,26 @@
 import { describe, it, expect } from 'vitest'
 import { Action } from '../../src/action/action.ts'
-import { DomExtractorError } from '../../src/error.ts'
+import { expectThrowsCode } from '../helpers/error.ts'
 
 describe("Action 构造函数", ()=>{
 
     it("name 不是字符串时抛错", ()=>{
         // @ts-expect-error 模拟纯 JS 下错误传参
-        expect(()=>new Action(123, 'single', (str:string)=>str)).toThrow(DomExtractorError);
+        expectThrowsCode(()=>new Action(123, 'single', (str:string)=>str), "INVALID_ACTION_NAME");
     })
 
     it("applyFor 不是 single/group 时抛错", ()=>{
         // @ts-expect-error 模拟纯 JS 下错误传参
-        expect(()=>new Action('bad', 'both', (str:string)=>str)).toThrow(DomExtractorError);
+        expectThrowsCode(()=>new Action('bad', 'both', (str:string)=>str), "INVALID_APPLY_FOR");
     })
 
     it("handle 不是函数时抛错", ()=>{
         // @ts-expect-error 模拟纯 JS 下错误传参
-        expect(()=>new Action('bad', 'single', 'not a function')).toThrow(DomExtractorError);
+        expectThrowsCode(()=>new Action('bad', 'single', 'not a function'), "INVALID_ACTION_HANDLE");
     })
 
     it("handle 没有参数时抛错", ()=>{
-        expect(()=>new Action('bad', 'single', ()=>'')).toThrow(DomExtractorError);
+        expectThrowsCode(()=>new Action('bad', 'single', ()=>''), "INVALID_ACTION_HANDLE");
     })
 })
 
@@ -51,24 +51,24 @@ describe("Action.run", ()=>{
 
     it("single 处理数组时抛错", ()=>{
         const action = new Action('upper', 'single', (str:string)=>str.toUpperCase());
-        expect(()=>action.run(['a','b'], {})).toThrow(DomExtractorError);
+        expectThrowsCode(()=>action.run(['a','b'], {}), "ACTION_TYPE_MISMATCH");
     })
 
     it("group 处理字符串时抛错", ()=>{
         const action = new Action('identity', 'group', (arr:string[])=>arr);
-        expect(()=>action.run('a,b', {})).toThrow(DomExtractorError);
+        expectThrowsCode(()=>action.run('a,b', {}), "ACTION_TYPE_MISMATCH");
     })
 
     it("rawData 既不是字符串也不是数组时抛错", ()=>{
         const action = new Action('upper', 'single', (str:string)=>str.toUpperCase());
         // @ts-expect-error 模拟纯 JS 下错误传参
-        expect(()=>action.run(123, {})).toThrow(DomExtractorError);
+        expectThrowsCode(()=>action.run(123, {}), "INVALID_ACTION_DATA");
     })
     
     it("不传参时抛错", ()=>{
         const action = new Action('upper', 'single', (str:string)=>str.toUpperCase());
         // @ts-expect-error 模拟纯 JS 下不传参调用
-        expect(()=>action.run()).toThrow(DomExtractorError);
+        expectThrowsCode(()=>action.run(), "INVALID_ACTION_DATA");
     })
 
     it("action 使用了不存在的上下文", ()=>{

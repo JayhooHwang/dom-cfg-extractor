@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { ActionRegistry } from '../../src/action/action-registry.ts'
 import { Action } from '../../src/action/action.ts'
-import { DomExtractorError } from '../../src/error.ts'
+import { expectThrowsCode } from '../helpers/error.ts'
 
 describe("ActionRegistry.register/includes", ()=>{
     it("注册后 includes 返回 true，未注册返回 false", ()=>{
@@ -26,7 +26,7 @@ describe("ActionRegistry.register/includes", ()=>{
     it("同名 action 重复注册时抛错", ()=>{
         const registry = new ActionRegistry();
         registry.register('upper', (str:string)=>str.toUpperCase());
-        expect(()=>registry.register('upper', (str:string)=>str.toLowerCase())).toThrow(DomExtractorError);
+        expectThrowsCode(()=>registry.register('upper', (str:string)=>str.toLowerCase()), "ACTION_DUPLICATE");
     })
 })
 
@@ -42,7 +42,7 @@ describe("ActionRegistry.getAction", ()=>{
 
     it("获取不存在的 action 时抛错", ()=>{
         const registry = new ActionRegistry();
-        expect(()=>registry.getAction('missing')).toThrow(DomExtractorError);
+        expectThrowsCode(()=>registry.getAction('missing'), "ACTION_NOT_FOUND");
     })
 })
 
@@ -90,7 +90,7 @@ describe("ActionRegistry.getMerges", ()=>{
         const second = new ActionRegistry();
         second.register('dup', (str:string)=>str);
 
-        expect(()=>ActionRegistry.getMerges(first, second)).toThrow(DomExtractorError);
+        expectThrowsCode(()=>ActionRegistry.getMerges(first, second), "ACTION_DUPLICATE");
     })
 
     it("合并结果与原注册表相互独立", ()=>{
