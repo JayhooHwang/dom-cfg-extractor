@@ -11,23 +11,28 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/JayhooHwang/dom-cfg-extractor.git"
+    "url": "git+https://github.com/JayhooHwang/dom-cfg-extractor.git"
   },
   "bugs": {
     "url": "https://github.com/JayhooHwang/dom-cfg-extractor/issues"
   },
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "test": "vitest",
     "test:run": "vitest run",
     "prepublishOnly": "npm run test:run && npm run build"
   },
