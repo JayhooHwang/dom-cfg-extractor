@@ -54,10 +54,8 @@ export type ExtractorSearchingContext = {
 export function resolveExcuteMapItem(rawKey:string, rawItem:string|MapItem, groupKeys:string[], context:ExtractorSearchingContext):ExcuteMapItem{
     const { key, optional } = resolveOptionalKey(rawKey);
 
+    checkMapItem(rawItem);
     if(typeof rawItem === 'string'){
-        if(!rawItem.trim()){
-            throw new DomExtractorError("SELECTOR_EMPTY", "selector 不能为空");
-        }
         return {
             selector: rawItem, 
             attr:"innerText",
@@ -65,7 +63,6 @@ export function resolveExcuteMapItem(rawKey:string, rawItem:string|MapItem, grou
             key, rawKey, optional, context, actions:[]
         }
     }else{
-        checkMapItem(rawItem);
         return {
             group: groupKeys.includes(key),
             actions: [],
@@ -88,11 +85,16 @@ function resolveOptionalKey(rawKey:string){
     return {key, optional};
 }
 
-function checkMapItem(mapItem:MapItem):void{
-    let {selector, actions} = mapItem;
+function checkMapItem(mapItem:MapItem|string):void|never{
+    const selector = typeof mapItem === 'string' ? mapItem : mapItem.selector;
+    
     if(!selector || !selector.trim()){
         throw new DomExtractorError("SELECTOR_EMPTY", "selector 不能为空");
     }
+
+    if(typeof mapItem === 'string') return;
+    const {actions} = mapItem;
+
     if(!!actions && !Array.isArray(actions)){
         throw new DomExtractorError("INVALID_ACTIONS", "actions 必须是数组");
     }
