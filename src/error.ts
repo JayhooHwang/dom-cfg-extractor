@@ -32,7 +32,7 @@ function getErrorMessage(message:string, occur?:ErrorOccur){
     return msg;
 }
 
-export function resolveCatch(ex:unknown, occur?:ErrorOccur){
+export function resolveCatch(ex:unknown, occur?:ErrorOccur):never{
     if(ex instanceof Error){
         //已带前缀的 DomExtractorError 作为 cause 时，避免前缀重复
         const message = ex instanceof DomExtractorError ? ex.message.slice(PREFIX.length).trim() : ex.message;

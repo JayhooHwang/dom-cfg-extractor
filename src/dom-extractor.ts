@@ -23,7 +23,7 @@ export class DomExtractor{
         this.#context = options.context || {}
     }
 
-    async search(dom:Document|Element, map:SearchMap): Promise<Record<string, string|string[]>|null>{
+    async search(dom:Document|Element, map:SearchMap): Promise<Record<string, string|string[]>>{
         if(!isQueryableNode(dom)){
             throw new DomExtractorError("dom 必须是 Document 或 Element");
         }
@@ -46,7 +46,6 @@ export class DomExtractor{
             return resultObj;
         }catch(ex){
             resolveCatch(ex, currentItem);
-            return null;
         }
     }
     
