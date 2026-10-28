@@ -464,27 +464,6 @@ describe("DomExtractor.search", ()=>{
         });
     });
 
-    describe("search 不应修改传入的搜索配置", ()=>{
-        it("省略 params 的 action 不会把 params 写回 searchMap", async ()=>{
-            const extractor = new DomExtractor();
-            const searchMap = {
-                "name": {
-                    "selector": ".name",
-                    "actions": [{ "name": "trim" }]
-                }
-            };
-
-            await extractor.search(document.body, searchMap as any);
-
-            expect(searchMap).toEqual({
-                name: {
-                    selector: ".name",
-                    actions: [{ name: "trim" }]
-                }
-            });
-        });
-    });
-
     describe("错误使用及报错", ()=>{
         describe("非法参数", ()=>{
             it("dom 不是 Document 或 Element 时，报错", async ()=>{
@@ -511,6 +490,25 @@ describe("DomExtractor.search", ()=>{
                 const result = await extractor.search(document.body, {});
 
                 expect(result).toEqual({});
+            });
+
+            it("search 不应修改传入的搜索配置", async ()=>{
+                const extractor = new DomExtractor();
+                const searchMap = {
+                    "name": {
+                        "selector": ".name",
+                        "actions": [{ "name": "trim" }]
+                    }
+                };
+
+                await extractor.search(document.body, searchMap as any);
+
+                expect(searchMap).toEqual({
+                    name: {
+                        selector: ".name",
+                        actions: [{ name: "trim" }]
+                    }
+                });
             });
         });
 
