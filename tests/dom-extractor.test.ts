@@ -464,6 +464,27 @@ describe("DomExtractor.search", ()=>{
         });
     });
 
+    describe("search 不应修改传入的搜索配置", ()=>{
+        it("省略 params 的 action 不会把 params 写回 searchMap", async ()=>{
+            const extractor = new DomExtractor();
+            const searchMap = {
+                "name": {
+                    "selector": ".name",
+                    "actions": [{ "name": "trim" }]
+                }
+            };
+
+            await extractor.search(document.body, searchMap as any);
+
+            expect(searchMap).toEqual({
+                name: {
+                    selector: ".name",
+                    actions: [{ name: "trim" }]
+                }
+            });
+        });
+    });
+
     describe("错误使用及报错", ()=>{
         describe("非法参数", ()=>{
             it("dom 不是 Document 或 Element 时，报错", async ()=>{
@@ -475,14 +496,16 @@ describe("DomExtractor.search", ()=>{
                     .rejects.toThrow("dom 必须是 Document 或 Element");
             });
 
-            it("map 不是 plain object 时，报错", async ()=>{
+            it.each([
+                ["null", null],
+                ["数组", []],
+                ["字符串数组", ["name"]],
+                ["Date 实例", new Date()],
+            ])("map 为 %s 时，报错", async (_label, badMap) => {
                 const extractor = new DomExtractor();
-                const badMaps:any[] = [null, [], ["name"], new Date()];
 
-                for(const badMap of badMaps){
-                    await expect(extractor.search(document.body, badMap))
-                        .rejects.toThrow("map 必须是 plain object");
-                }
+                await expect(extractor.search(document.body, badMap as any))
+                    .rejects.toThrow("map 必须是 plain object");
             });
 
             it("map 传空对象时，返回空对象", async ()=>{
@@ -495,19 +518,16 @@ describe("DomExtractor.search", ()=>{
         });
 
         describe("selector 相关", ()=>{
-            it("map.selector 为空或缺失时，报错", async ()=>{
+            it.each([
+                ["selector 为空字符串", { name: { selector: "" } }],
+                ["selector 为纯空白", { name: { selector: "   " } }],
+                ["缺失 selector", { name: { attr: "innerText" } }],
+                ["字符串简写为空", { name: "" }],
+            ])("非法 map：%s", async (_label, badMap) => {
                 const extractor = new DomExtractor();
-                const badMaps:any[] = [
-                    { name: { selector: "" } },
-                    { name: { selector: "   " } },   // 纯空白同样视作空
-                    { name: { attr: "innerText" } }, // 缺失 selector
-                    { name: "" }                     // 字符串简写形式为空
-                ];
 
-                for(const badMap of badMaps){
-                    await expect(extractor.search(document.body, badMap))
-                        .rejects.toThrow("selector 不能为空");
-                }
+                await expect(extractor.search(document.body, badMap as any))
+                    .rejects.toThrow("selector 不能为空");
             });
 
             it("map.selector 找不到对应元素时，报错", async ()=>{
@@ -525,6 +545,33 @@ describe("DomExtractor.search", ()=>{
                 await expect(extractor.search(document.body, {
                     "name": { "selector": ".name", "attr": "data-not-exist" }
                 })).rejects.toThrow("无法从指定的 element 中正确获取 data-not-exist 属性");
+            });
+            
+            it("group 选择器找不到元素时，返回空数组而不是报错", async ()=>{
+                const extractor = new DomExtractor({
+                    groupKeys: ["ghostCourses"]
+                });
+
+                const result = await extractor.search(document.body, {
+                    "ghostCourses": ".ghost-course"
+                });
+
+                // 与单个 key 缺失即报错不同：group 模式静默返回空数组
+                expect(result).toEqual({ ghostCourses: [] });
+            });
+
+            it("group 选择器不支持 @ 深层查找，会因非法 selector 报错", async ()=>{
+                const extractor = new DomExtractor({
+                    groupKeys: ["attendanceRate"]
+                });
+
+                // group 走 querySelectorAll，不解析 @ 分隔符，因此整串被当作非法 CSS selector
+                const error = await extractor.search(document.body, {
+                    "attendanceRate": ".additional-info iframe@dd:nth-of-type(1)"
+                }).catch(ex=>ex);
+
+                expect(error).toBeInstanceOf(DomExtractorError);
+                expect(error.occur?.key).toBe("attendanceRate");
             });
 
             it("iframe 跨域无法访问 contentDocument 时，打印警告并按找不到元素报错", async ()=>{
