@@ -49,18 +49,17 @@ export class ActionRunner{
  * @returns 
  */
 function resolveActionCaller(actionCaller:ActionCaller){
-    if(typeof actionCaller === 'string'){
-        // When action is a string, it means an action without any parameters
-        actionCaller = { name: actionCaller, params:[] };
-    }
-    actionCaller.params = actionCaller.params ?? []; // If params is empty, assign []
+    const caller = typeof actionCaller === 'string'
+        ? { name: actionCaller, params: [] as string[] }
+        : actionCaller;
+    const { name } = caller;
+    const params = caller.params ?? [];
 
-    const { name, params } = actionCaller;
     if(typeof name !== 'string' || !name.trim().length){
         throw new DomExtractorError("action.name is required and must be a string");
     }
     if(!Array.isArray(params)){
         throw new DomExtractorError("action.params must be an array");
     }
-    return actionCaller;
+    return { name, params };
 }
