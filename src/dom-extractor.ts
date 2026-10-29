@@ -1,10 +1,10 @@
 import { ActionRegistry } from "./action/action-registry.ts";
 import { ActionRunner } from "./action/action-runner.ts";
 import { inherentActions } from "./action/inherent-actions.ts";
-import { DomExtractorError, resolveCatch, type ErrorOccur } from "./error.ts";
+import { DomExtractorError, resolveCatch, type ErrorOccurrence } from "./error.ts";
 import { clickAndQuery, querySelectorDeep, readPropOrAttrFromElement } from "./html-utils.ts";
-import { resolveExcuteMapItem, type ExcuteMapItem, type ExtractorSearchingContext, type SearchMap } from "./search-map-resolver.ts";
-import { getSpecialSelectorResult, isSpecialSelector } from "./sepcial-selector.ts";
+import { resolveExecuteMapItem, type ExecuteMapItem, type ExtractorSearchingContext, type SearchMap } from "./search-map-resolver.ts";
+import { getSpecialSelectorResult, isSpecialSelector } from "./special-selector.ts";
 
 export type ExtractorOptions = {
     groupKeys?:string[],
@@ -19,7 +19,7 @@ export class DomExtractor{
 
     constructor(options:ExtractorOptions={}){
         this.#groupKeys = options.groupKeys ?? []        
-        this.#actionRunner = new ActionRunner(ActionRegistry.getMerges(inherentActions, options.actionRegistry))
+        this.#actionRunner = new ActionRunner(ActionRegistry.getMerged(inherentActions, options.actionRegistry))
         this.#context = options.context || {}
     }
 
@@ -30,12 +30,12 @@ export class DomExtractor{
         if(!isPlainObject(map)){
             throw new DomExtractorError("INVALID_MAP", "map 必须是 plain object");
         }
-        let currentItem:ErrorOccur = { key: "" };
+        let currentItem:ErrorOccurrence = { key: "" };
         try{
             const resultObj:Record<string, string|string[]> = {};
             for (const [rawKey, rawItem] of Object.entries(map)){
                 currentItem = { key: rawKey, item: rawItem };
-                const item = resolveExcuteMapItem(rawKey, rawItem, this.#groupKeys, this.#context);
+                const item = resolveExecuteMapItem(rawKey, rawItem, this.#groupKeys, this.#context);
 
                 if(item.click){
                     await clickAndQuery(dom, item.selector, item.click )
@@ -49,12 +49,12 @@ export class DomExtractor{
         }
     }
     
-    #searchItemValue(baseNode:Document|Element, mapItem:ExcuteMapItem):string|string[]{
+    #searchItemValue(baseNode:Document|Element, mapItem:ExecuteMapItem):string|string[]{
         const {selector, attr, group, actions, context, optional} = mapItem;
         let result:string|string[];
 
         if(group){
-            result = getRawDatas(baseNode, selector, attr, optional);
+            result = getRawDataArray(baseNode, selector, attr, optional);
         }else{
             result = getRawData(baseNode, selector, attr, optional);
         }
@@ -92,13 +92,13 @@ function getRawData(baseNode:Document|Element, selector:string, attr:string, opt
     return rawData;
 }
 
-function getRawDatas(baseNode:Document|Element, selector:string, attr:string, optional:boolean):string[]{
+function getRawDataArray(baseNode:Document|Element, selector:string, attr:string, optional:boolean):string[]{
     const elList = baseNode.querySelectorAll(selector);
-    const rawDatas:string[] = [];
+    const rawDataArray:string[] = [];
     for(const el of elList){
-        rawDatas.push(getRawDataByAttr(el, attr, optional));
+        rawDataArray.push(getRawDataByAttr(el, attr, optional));
     }
-    return rawDatas;
+    return rawDataArray;
 }
 
 /**

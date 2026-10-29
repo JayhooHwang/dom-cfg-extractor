@@ -294,11 +294,11 @@ Extracts values from `dom` according to `map`.
 | `register(name, handle, applyFor?)` | Registers an action; `applyFor` defaults to `'single'`     |
 | `includes(name)`                | Checks whether an action name is registered                    |
 | `getAction(name)`               | Returns the action or throws `ACTION_NOT_FOUND`                |
-| `ActionRegistry.getMerges(...registries)` | Merges registries, throwing on duplicate names        |
+| `ActionRegistry.getMerged(...registries)` | Merges registries, throwing on duplicate names        |
 
 ### Exported types
 
-`SearchMap`, `MapItem`, `ExtractorOptions`, `ActionCaller`, `ActionHandle`, `ApplyFor`, `ErrorOccur`, `ErrorCode`.
+`SearchMap`, `MapItem`, `ExtractorOptions`, `ActionCaller`, `ActionHandle`, `ApplyFor`, `ErrorOccurrence`, `ErrorCode`.
 
 ## Development
 

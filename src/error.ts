@@ -1,4 +1,4 @@
-export type ErrorOccur = {key?:string,item?:any}
+export type ErrorOccurrence = {key?:string,item?:any}
 
 export type ErrorCode =
     | "INVALID_DOM"
@@ -23,9 +23,9 @@ const PREFIX = "[DOM_EXTRACTOR_ERR]"
 export class DomExtractorError extends Error {
     name = "DomExtractorError";
     readonly code:ErrorCode;
-    occur:ErrorOccur|undefined;
+    occur:ErrorOccurrence|undefined;
 
-    constructor(code:ErrorCode, message:string, cause?:Error, occur?:ErrorOccur){
+    constructor(code:ErrorCode, message:string, cause?:Error, occur?:ErrorOccurrence){
         super(`${PREFIX} ${getErrorMessage(message, occur)}`, {cause});
         this.code = code;
         this.occur = occur;
@@ -44,7 +44,7 @@ export function consoleWarning(message:string, ex?:Error|unknown){
     console.warn(`${PREFIX} ${message}`, ex)
 }
 
-function getErrorMessage(message:string, occur?:ErrorOccur){
+function getErrorMessage(message:string, occur?:ErrorOccurrence){
     let msg = message;
     if(occur){
         msg += "(occur key=" + occur?.key + ")";
@@ -52,7 +52,7 @@ function getErrorMessage(message:string, occur?:ErrorOccur){
     return msg;
 }
 
-export function resolveCatch(ex:unknown, occur?:ErrorOccur):never{
+export function resolveCatch(ex:unknown, occur?:ErrorOccurrence):never{
     if(ex instanceof DomExtractorError){
         //已带前缀的 DomExtractorError 作为 cause 时，避免前缀重复，并保留原有 code
         const message = ex.message.slice(PREFIX.length).trim();

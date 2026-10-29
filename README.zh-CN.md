@@ -294,11 +294,11 @@ try {
 | `register(name, handle, applyFor?)`       | 注册 Action；`applyFor` 默认为 `'single'`        |
 | `includes(name)`                          | 检查某个 Action 名称是否已注册                   |
 | `getAction(name)`                         | 返回对应 Action，未找到时抛出 `ACTION_NOT_FOUND` |
-| `ActionRegistry.getMerges(...registries)` | 合并多个注册表，名称重复时抛错                   |
+| `ActionRegistry.getMerged(...registries)` | 合并多个注册表，名称重复时抛错                   |
 
 ### 导出的类型
 
-`SearchMap`、`MapItem`、`ExtractorOptions`、`ActionCaller`、`ActionHandle`、`ApplyFor`、`ErrorOccur`、`ErrorCode`。
+`SearchMap`、`MapItem`、`ExtractorOptions`、`ActionCaller`、`ActionHandle`、`ApplyFor`、`ErrorOccurrence`、`ErrorCode`。
 
 ## 开发
 

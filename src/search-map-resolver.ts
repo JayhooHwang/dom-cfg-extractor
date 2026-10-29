@@ -22,7 +22,7 @@ export interface MapItem{
     click?: string;
 }
 
-export interface ExcuteMapItem extends MapItem{
+export interface ExecuteMapItem extends MapItem{
     attr: string
     /**
      * 用户配置中的原始 key
@@ -51,7 +51,7 @@ export type ExtractorSearchingContext = {
     [key:string]: string
 }
 
-export function resolveExcuteMapItem(rawKey:string, rawItem:string|MapItem, groupKeys:string[], context:ExtractorSearchingContext):ExcuteMapItem{
+export function resolveExecuteMapItem(rawKey:string, rawItem:string|MapItem, groupKeys:string[], context:ExtractorSearchingContext):ExecuteMapItem{
     const { key, optional } = resolveOptionalKey(rawKey);
 
     checkMapItem(rawItem);

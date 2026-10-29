@@ -41,7 +41,7 @@ export class ActionRegistry{
         }
     }
 
-    static getMerges(...actionRegistries:(ActionRegistry|undefined)[]){
+    static getMerged(...actionRegistries:(ActionRegistry|undefined)[]){
         const mergedRegistry = new ActionRegistry();
         actionRegistries.forEach(actionRegistry=>{
             if(!actionRegistry) return;

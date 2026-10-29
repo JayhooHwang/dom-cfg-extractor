@@ -25,8 +25,8 @@ inherentActions.register('replace', (str:string, from:string, to:string)=>{
     if(!from || !from.length || typeof to === 'undefined'){
         throw new DomExtractorError("ACTION_PARAMS_REQUIRED", "Action [replace] 必须传递 2 个参数")
     }
-    const serachRgx = new RegExp(from, 'g');
-    return str.replace(serachRgx, to);
+    const searchRgx = new RegExp(from, 'g');
+    return str.replace(searchRgx, to);
 })
 
 /**
@@ -36,8 +36,8 @@ inherentActions.register('extract', (str:string, pattern:string)=>{
     if(!pattern || !pattern.length){
         throw new DomExtractorError("ACTION_PARAMS_REQUIRED", "Action [extract] 必须传递 1 个参数")
     }
-    const serachRgx = new RegExp(pattern);
-    const matcher = str.match(serachRgx);
+    const searchRgx = new RegExp(pattern);
+    const matcher = str.match(searchRgx);
     if(!matcher){
         return ""
     }
@@ -52,8 +52,8 @@ inherentActions.register('remove', (str:string, target:string)=>{
     if(!target || !target.length){
         throw new DomExtractorError("ACTION_PARAMS_REQUIRED", "Action [remove] 必须传递 1 个参数")
     }
-    const serachRgx = new RegExp(target, 'g');
-    return str.replace(serachRgx, "");
+    const searchRgx = new RegExp(target, 'g');
+    return str.replace(searchRgx, "");
 })
 
 inherentActions.register('trim', (str:string)=>str.trim())

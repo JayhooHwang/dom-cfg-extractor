@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest'
-import { isSpecialSelector, getSpecialSelectorResult } from '../src/sepcial-selector.ts'
+import { isSpecialSelector, getSpecialSelectorResult } from '../src/special-selector.ts'
 
 describe("isSpecialSelector", ()=>{
     it("识别 URL 为特殊选择器", ()=>{

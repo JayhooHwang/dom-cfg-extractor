@@ -59,14 +59,14 @@ describe("ActionRegistry[Symbol.iterator]", ()=>{
     })
 })
 
-describe("ActionRegistry.getMerges", ()=>{
+describe("ActionRegistry.merge", ()=>{
     it("合并多个注册表", ()=>{
         const first = new ActionRegistry();
         first.register('a', (str:string)=>str);
         const second = new ActionRegistry();
         second.register('b', (str:string)=>str);
 
-        const merged = ActionRegistry.getMerges(first, second);
+        const merged = ActionRegistry.getMerged(first, second);
         expect([...merged].map(action=>action.name)).toEqual(['a','b']);
         expect(merged.getAction('b').run('x', {})).toBe('x');
     })
@@ -75,13 +75,13 @@ describe("ActionRegistry.getMerges", ()=>{
         const registry = new ActionRegistry();
         registry.register('a', (str:string)=>str);
 
-        const merged = ActionRegistry.getMerges(undefined, registry, undefined);
+        const merged = ActionRegistry.getMerged(undefined, registry, undefined);
         expect([...merged]).toHaveLength(1);
         expect(merged.includes('a')).toBe(true);
     })
 
     it("不传参数时返回空注册表", ()=>{
-        expect([...ActionRegistry.getMerges()]).toEqual([]);
+        expect([...ActionRegistry.getMerged()]).toEqual([]);
     })
 
     it("存在同名 action 时抛错", ()=>{
@@ -90,14 +90,14 @@ describe("ActionRegistry.getMerges", ()=>{
         const second = new ActionRegistry();
         second.register('dup', (str:string)=>str);
 
-        expectThrowsCode(()=>ActionRegistry.getMerges(first, second), "ACTION_DUPLICATE");
+        expectThrowsCode(()=>ActionRegistry.getMerged(first, second), "ACTION_DUPLICATE");
     })
 
     it("合并结果与原注册表相互独立", ()=>{
         const first = new ActionRegistry();
         first.register('a', (str:string)=>str);
 
-        const merged = ActionRegistry.getMerges(first);
+        const merged = ActionRegistry.getMerged(first);
         merged.register('b', (str:string)=>str);
         expect(first.includes('b')).toBe(false);
     })
