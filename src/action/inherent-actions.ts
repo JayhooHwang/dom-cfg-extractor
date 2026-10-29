@@ -3,6 +3,15 @@
  */
 import { DomExtractorError } from "../error.ts";
 import { ActionRegistry } from "./action-registry.ts";
+import { RegexGuard } from "./regex-guard.ts";
+
+/**
+ * Private cap on the data handed to a regex. It bounds the worst-case
+ * backtracking cost of polynomial ("ReDoS-ish") patterns; exponential
+ * patterns are not covered by this limit and must be treated as trusted input.
+ */
+const REGEX_INPUT_LIMIT = 8192;
+const regexGuard = new RegexGuard({ inputLimit: REGEX_INPUT_LIMIT });
 
 export const inherentActions = new ActionRegistry();
 // Inherent actions
@@ -26,6 +35,7 @@ inherentActions.register('replace', (str:string, from:string, to:string)=>{
         throw new DomExtractorError("ACTION_PARAMS_REQUIRED", "Action [replace] requires exactly 2 parameters")
     }
     const searchRgx = new RegExp(from, 'g');
+    regexGuard.assertSafe(str, searchRgx);
     return str.replace(searchRgx, to);
 })
 
@@ -37,6 +47,7 @@ inherentActions.register('extract', (str:string, pattern:string)=>{
         throw new DomExtractorError("ACTION_PARAMS_REQUIRED", "Action [extract] requires exactly 1 parameter")
     }
     const searchRgx = new RegExp(pattern);
+    regexGuard.assertSafe(str, searchRgx);
     const matcher = str.match(searchRgx);
     if(!matcher){
         return ""
@@ -53,6 +64,7 @@ inherentActions.register('remove', (str:string, target:string)=>{
         throw new DomExtractorError("ACTION_PARAMS_REQUIRED", "Action [remove] requires exactly 1 parameter")
     }
     const searchRgx = new RegExp(target, 'g');
+    regexGuard.assertSafe(str, searchRgx);
     return str.replace(searchRgx, "");
 })
 

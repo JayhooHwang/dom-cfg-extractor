@@ -173,6 +173,14 @@ const data = await extractor.search(document.body, {
 | `extract` | single   | `pattern`    | 返回第一个捕获组；没有捕获组时返回整个匹配       |
 | `split`   | group    | `splitter`   | 将数组中唯一的元素拆分为新数组                   |
 
+### 正则安全
+
+`replace`、`remove`、`extract` 会把参数编译成正则表达式。正则来自你的配置，但输入来自被解析的页面；一个只是“接近匹配”的回溯型正则会阻塞事件循环。
+
+这三个 Action 对超过 8192 字符的输入抛出 `REGEXP_INPUT_TOO_LONG`。该上限限制的是多项式级回溯（触顶时最坏约 60 ms）；它**不能**防御指数级回溯的模式，因此 Action 里的正则应视为可信配置。
+
+如果搜索配置来自使用者而非你自己编写（不可信配置），建议在调用 `search()` 前对 `action` 的 `params` 做校验或收紧，例如只允许预先审核过的正则，或对使用者提供的 pattern 做静态 ReDoS 检查。
+
 ### single 与 group Action
 
 - **single** Action 接收一个字符串并返回一个字符串。当值为数组时，会对每个元素分别应用。
@@ -269,6 +277,8 @@ try {
 | `ACTION_PARAMS_REQUIRED` | 内置 Action 缺少必需参数                         |
 | `INVALID_ACTION_DATA`    | Action 收到的数据既不是字符串也不是数组          |
 | `ACTION_TYPE_MISMATCH`   | single/group Action 应用于不匹配的值类型         |
+| `REGEXP_INPUT_TOO_LONG`  | 正则类 Action 的输入超过长度上限                 |
+| `INVALID_REGEX_GUARD_OPTIONS`  | 内部正则守卫收到的 `inputLimit` 非法             |
 | `UNKNOWN_ERROR`          | 其它错误，包装时保留原始 `cause`                 |
 
 传给 `search()` 的搜索配置不会被修改。

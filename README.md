@@ -173,6 +173,14 @@ const data = await extractor.search(document.body, {
 | `extract` | single     | `pattern`       | Returns the first capture group, or the whole match if there is none     |
 | `split`   | group      | `splitter`      | Splits the only element of the array into a new array                    |
 
+### Regex safety
+
+`replace`, `remove` and `extract` compile their parameters into regular expressions. The patterns come from your config, but the input comes from the page being parsed, and a backtracking pattern that merely comes close to matching can block the event loop.
+
+These three actions reject input longer than 8192 characters with `REGEXP_INPUT_TOO_LONG`. The limit bounds polynomial backtracking (about 60 ms worst case at the cap). It does **not** defend against exponentially backtracking patterns, so action patterns must be treated as trusted config.
+
+If the search map comes from your users rather than from you (untrusted config), validate or restrict action `params` before calling `search()` — for example, allow only pre-approved patterns, or run a static ReDoS check on patterns supplied by users.
+
 ### Single vs. group actions
 
 - A **single** action receives one string and returns one string. When the value is an array, it is applied to each item.
@@ -269,6 +277,8 @@ try {
 | `ACTION_PARAMS_REQUIRED` | A built-in action is missing a required parameter              |
 | `INVALID_ACTION_DATA`    | An action received data that is neither a string nor an array  |
 | `ACTION_TYPE_MISMATCH`   | A single/group action was applied to the wrong kind of value   |
+| `REGEXP_INPUT_TOO_LONG`  | Input to a regex-based action exceeds the length limit         |
+| `INVALID_REGEX_GUARD_OPTIONS`  | The internal regex guard received an invalid `inputLimit`  |
 | `UNKNOWN_ERROR`          | Any other error, wrapped with its original `cause`             |
 
 The search map passed to `search()` is never mutated.

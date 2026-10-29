@@ -131,3 +131,23 @@ describe("trim", ()=>{
         expect(run('trim', '\t\n')).toBe('');
     })
 })
+
+describe("正则类 action 的输入长度上限 ( input limit of regex-based actions )", ()=>{
+    const long = 'a'.repeat(8193);
+
+    it("replace 输入超长时抛错 ( replace throws when input is too long )", ()=>{
+        expectThrowsCode(()=>run('replace', long, 'a', 'b'), "REGEXP_INPUT_TOO_LONG");
+    })
+
+    it("extract 输入超长时抛错 ( extract throws when input is too long )", ()=>{
+        expectThrowsCode(()=>run('extract', long, 'a'), "REGEXP_INPUT_TOO_LONG");
+    })
+
+    it("remove 输入超长时抛错 ( remove throws when input is too long )", ()=>{
+        expectThrowsCode(()=>run('remove', long, 'a'), "REGEXP_INPUT_TOO_LONG");
+    })
+
+    it("未超过上限时正常处理 ( processes input at the limit normally )", ()=>{
+        expect(run('extract', 'a'.repeat(8192), '^(a+)$')).toHaveLength(8192);
+    })
+})
