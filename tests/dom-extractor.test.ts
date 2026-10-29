@@ -83,8 +83,8 @@ describe("DomExtractor.search", ()=>{
         vi.restoreAllMocks();
     })
 
-    describe("基本用法", ()=>{
-        it("最简应用：直接以 { key: selector } 的最简形式获取数据", async ()=>{
+    describe("基本用法 ( Basic usage )", ()=>{
+        it("最简应用：直接以 { key: selector } 的最简形式获取数据 ( simplest usage with the { key: selector } shorthand )", async ()=>{
             const extractor = new DomExtractor();
             const result = await extractor.search(document, {
                 "pageTitle": "title",
@@ -101,7 +101,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
         
-        it("通过指定 selector，默认获取 innerText 中的数据", async ()=>{
+        it("通过指定 selector，默认获取 innerText 中的数据 ( fetches innerText by default when selector is specified )", async ()=>{
             const extractor = new DomExtractor();
             const result = await extractor.search(document.body, {
                 "name": { "selector": ".name"},
@@ -116,7 +116,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
         
-        it("获取指定 attr 中的数据", async ()=>{
+        it("获取指定 attr 中的数据 ( fetches data from the specified attr )", async ()=>{
             const extractor = new DomExtractor();
             const result = await extractor.search(document.body, {
                 "name": { "selector": ".name", "attr": "innerText"},
@@ -129,7 +129,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("通过简写的 attr( text 和 html ) 获取数据", async ()=>{
+        it("通过简写的 attr( text 和 html ) 获取数据 ( fetches data with the text and html attr aliases )", async ()=>{
             const extractor = new DomExtractor();
             const result = await extractor.search(document.body, {
                 "name": { "selector": ".name", "attr": "text"},
@@ -142,7 +142,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
         
-        it("href 获取到的是完整的链接", async ()=>{
+        it("href 获取到的是完整的链接 ( href returns the full resolved URL )", async ()=>{
             const extractor = new DomExtractor();
             const result = await extractor.search(document.body, {
                 "counselor": ".counselor",
@@ -155,7 +155,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("获取数组类型数据", async ()=>{
+        it("获取数组类型数据 ( fetches array data )", async ()=>{
             const extractor = new DomExtractor({
                 "groupKeys": ["majorCourses"]
             });
@@ -166,27 +166,27 @@ describe("DomExtractor.search", ()=>{
                 "Interests": ".interests"
             });
 
-            // 只有在 groupKeys 中指定的 key 才返回为数组
+            // Only keys listed in groupKeys are returned as arrays
             expect(result).toEqual({
                 name: "Li Lei",
                 majorCourses: ["Data Structures", "Operating Systems", "Computer Networks", "Database Systems" ],
-                electiveCourses: "Music Appreciation",  // 未在 groupKeys 中指定，只能获取到第一个匹配的 span.course
+                electiveCourses: "Music Appreciation",  // Not listed in groupKeys, so only the first matching span.course is returned
                 Interests: "Basketball, Reading, Photography, Swimming, Traveling, Playing the Guitar"
             })
         });
     });
 
-    describe("使用可选键 (key?)", ()=>{
-        it("对于不确定的键，selector 找不到对应的元素时将报错", async () => {
+    describe("使用可选键 (key?) ( Optional keys )", ()=>{
+        it("对于不确定的键，selector 找不到对应的元素时将报错 ( throws when a non-optional key's selector finds no element )", async () => {
             const extractor = new DomExtractor();
             const searchMap = {
-                "selfIntroduction": "dd.self-introduction"  //对于 Self Introduction 有些学生填写了，而有些学生没有填写
+                "selfIntroduction": "dd.self-introduction"  // Some students filled in Self Introduction while others did not
             }
 
             await expectRejectsCode(extractor.search(document.body, searchMap), "ELEMENT_NOT_FOUND");
         });
 
-        it("通过设置 key? 可避免报错，并且返回空字符串", async () => {
+        it("通过设置 key? 可避免报错，并且返回空字符串 ( marks the key optional with ? to avoid the error and return an empty string )", async () => {
             const extractor = new DomExtractor();
             const searchMap = {
                 "selfIntroduction?": "dd.self-introduction"
@@ -197,8 +197,8 @@ describe("DomExtractor.search", ()=>{
             })
         });
         
-        it("当指定的 selector 找到对应的元素时， key? 也能获取到值", async () => {
-            initPage(hanMeimeiHtml, 'HanMeimei');  // Han Meimei 的页面填写了 Self Introduction
+        it("当指定的 selector 找到对应的元素时，key? 也能获取到值 ( an optional key still returns a value when its selector matches )", async () => {
+            initPage(hanMeimeiHtml, 'HanMeimei');  // Han Meimei's page includes Self Introduction
 
             const extractor = new DomExtractor();
             const searchMap = {
@@ -213,8 +213,8 @@ describe("DomExtractor.search", ()=>{
         });
     });
 
-    describe("使用 Action 修饰数据", ()=>{
-        it("使用内置的 Action 修饰数据 (single action: replace) ", async ()=>{
+    describe("使用 Action 修饰数据 ( Transforming data with Actions )", ()=>{
+        it("使用内置的 Action 修饰数据 (single action: replace) ( built-in single action: replace )", async ()=>{
             const extractor = new DomExtractor();
             const result = await extractor.search(document.body ,{
                 "name": ".name",
@@ -233,7 +233,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("使用内置的 Action 修饰数据 (single action: extract —— 使用正则表达式提取值) ", async ()=>{
+        it("使用内置的 Action 修饰数据 (single action: extract —— 使用正则表达式提取值) ( built-in single action: extract with a regex )", async ()=>{
             const extractor = new DomExtractor();
             const result = await extractor.search(document.body ,{
                 "name": ".name",
@@ -252,7 +252,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("使用内置的 Action 修饰数据 (group action: split) ", async ()=>{
+        it("使用内置的 Action 修饰数据 (group action: split) ( built-in group action: split )", async ()=>{
             const extractor = new DomExtractor({
                 groupKeys: ["interests"]
             });
@@ -262,7 +262,7 @@ describe("DomExtractor.search", ()=>{
                     "selector": ".interests",
                     "actions": [{
                         "name": 'split',
-                        "params": [", "]    // 注意这里要包含空格，否则得到的数组元素将留有空格 ( 也可以再加一个 trim Action 去空格，见后文 )
+                        "params": [", "]    // Include the space here, otherwise the array items will keep leading spaces (or add a trim action, see below)
                     }]
                 },
             })
@@ -273,12 +273,12 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("使用自定义 Action 修饰数据 (single) ", async ()=>{
-            // 可注册多个自定义 Action
+        it("使用自定义 Action 修饰数据 (single) ( custom single action )", async ()=>{
+            // Multiple custom actions can be registered
             const actionRegistry = new ActionRegistry();
             actionRegistry.register('lower-case', (str:string):string=>str.toLowerCase())
             actionRegistry.register('upper-case', (str:string):string=>str.toUpperCase())
-            // 将自定义的 ActionRegistry 配置到 DomExtractor
+            // Pass the custom ActionRegistry to DomExtractor
             const extractor = new DomExtractor({
                 groupKeys: ["majorCourses"],
                 actionRegistry
@@ -292,7 +292,7 @@ describe("DomExtractor.search", ()=>{
                     "selector": ".name",
                     "actions": ['lower-case']
                 },
-                // Single Action 应用于数组时，将对数组的每个元素生效
+                // A single action applied to an array affects each item
                 "majorCourses": {
                     "selector": ".major-courses .course",
                     "actions": ["lower-case"]
@@ -306,8 +306,8 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("使用自定义 Action 修饰数据 (group) ", async ()=>{
-            // 注册一个自定义 Action，用来给数组排序
+        it("使用自定义 Action 修饰数据 (group) ( custom group action )", async ()=>{
+            // Register a custom action that sorts the array
             const actionRegistry = new ActionRegistry();
             actionRegistry.register("sort", (arr:string[])=>{
                 const copy = [...arr]
@@ -320,7 +320,7 @@ describe("DomExtractor.search", ()=>{
             const result = await extractor.search(document.body, {
                 "majorCourses": {
                     "selector": ".major-courses .course",
-                    "actions": ["sort"] // Group Action 对数组整体生效，不可用于非数组值
+                    "actions": ["sort"] // A group action applies to the whole array and cannot be used on a non-array value
                 }
             });
 
@@ -330,13 +330,13 @@ describe("DomExtractor.search", ()=>{
 
         });
 
-        it("多 Action 编排 (single) ", async ()=>{
+        it("多 Action 编排 (single) ( chaining single actions )", async ()=>{
             const extractor = new DomExtractor();
             const result = await extractor.search(document.body ,{
                 "name": ".name",
                 "from": {
                     "selector": ".address",
-                    // 先用正则表达式提取值，再去除首尾空格
+                    // First extract with a regex, then trim surrounding whitespace
                     "actions": [{ "name": 'extract', "params": [",([^,]*,[^,]*)$"] }, 'trim']
                 },
             })
@@ -347,7 +347,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("多 Action 编排 (group & single 混编) ", async ()=>{
+        it("多 Action 编排 (group & single 混编) ( chaining mixed group and single actions )", async ()=>{
             const extractor = new DomExtractor({
                 groupKeys: ["interests"]
             });
@@ -355,7 +355,7 @@ describe("DomExtractor.search", ()=>{
                 "name": ".name",
                 "interests": {
                     "selector": ".interests",
-                    // 先拆分数组，再去除各元素的首尾空格
+                    // First split the array, then trim each item
                     "actions": [{ "name": 'split', "params": [","] }, 'trim']
                 },
             })
@@ -366,7 +366,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("通过 context 向自定义 Action 传值", async()=>{
+        it("通过 context 向自定义 Action 传值 ( passes values to a custom action via context )", async()=>{
             const actionRegistry = new ActionRegistry();
             type SearchingContext = { cdn?: string }
             actionRegistry.register('cdn', function(this:SearchingContext, src:string){
@@ -396,8 +396,8 @@ describe("DomExtractor.search", ()=>{
         })
     });
 
-    describe("其它进阶用法", ()=>{
-        it("使用特殊 selector 获取不存在于 DOM 文档中的值(使用 'URL' selector)", async ()=>{
+    describe("其它进阶用法 ( Other advanced usage )", ()=>{
+        it("使用特殊 selector 获取不存在于 DOM 文档中的值 (使用 'URL' selector) ( fetches a value outside the DOM via the 'URL' special selector )", async ()=>{
             const extractor = new DomExtractor()
             const result = await extractor.search(document.body, {
                 "refer": "URL",
@@ -408,7 +408,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("获取 iframe 中的数据", async ()=>{
+        it("获取 iframe 中的数据 ( fetches data from iframes )", async ()=>{
             const extractor = new DomExtractor();
             const result = await extractor.search(document.body, {
                 "attendanceRate": ".additional-info iframe@dd:nth-of-type(1)",
@@ -425,8 +425,8 @@ describe("DomExtractor.search", ()=>{
             })
         });
 
-        it("获取深层 iframe 中的数据", async ()=>{
-            // 在一级 iframe 的文档内再嵌套一层 iframe
+        it("获取深层 iframe 中的数据 ( fetches data from a nested iframe )", async ()=>{
+            // Nest another iframe inside the first-level iframe document
             const outerFrame = document.querySelector(".additional-info iframe") as HTMLIFrameElement;
             await (window as any).happyDOM.waitUntilComplete();
             const outerDoc = outerFrame.contentDocument!;
@@ -445,7 +445,7 @@ describe("DomExtractor.search", ()=>{
             })
         });
         
-        it("模拟 click 并获取数据", async ()=>{
+        it("模拟 click 并获取数据 ( clicks and then fetches data )", async ()=>{
             vi.useFakeTimers();
             enableButton([92, 88, 90, 95], 1000);
             const extractor = new DomExtractor();
@@ -456,7 +456,7 @@ describe("DomExtractor.search", ()=>{
                 }
             })
 
-            // 点击后轮询查找目标元素，目标元素在 1000ms 后才插入 DOM，留出余量确保能查到
+            // Poll for the target after clicking; it is inserted after 1000ms, so allow extra time
             await vi.advanceTimersByTimeAsync(2000);
             await expect(promiseWithClick).resolves.toEqual({
                 scoreOfOperatingSystems: "88"
@@ -464,9 +464,9 @@ describe("DomExtractor.search", ()=>{
         });
     });
 
-    describe("错误使用及报错", ()=>{
-        describe("非法参数", ()=>{
-            it("dom 不是 Document 或 Element 时，报错", async ()=>{
+    describe("错误使用及报错 ( Misuse and errors )", ()=>{
+        describe("非法参数 ( Invalid arguments )", ()=>{
+            it("dom 不是 Document 或 Element 时，报错 ( throws when dom is not a Document or Element )", async ()=>{
                 const extractor = new DomExtractor();
 
                 await expectRejectsCode(extractor.search(null as any, { name: ".name" }), "INVALID_DOM");
@@ -474,17 +474,17 @@ describe("DomExtractor.search", ()=>{
             });
 
             it.each([
-                ["null", null],
-                ["数组", []],
-                ["字符串数组", ["name"]],
-                ["Date 实例", new Date()],
-            ])("map 为 %s 时，报错", async (_label, badMap) => {
+                { zh: "map 为 null 时，报错", en: "throws when map is null", map: null },
+                { zh: "map 为数组时，报错", en: "throws when map is an array", map: [] },
+                { zh: "map 为字符串数组时，报错", en: "throws when map is a string array", map: ["name"] },
+                { zh: "map 为 Date 实例时，报错", en: "throws when map is a Date instance", map: new Date() },
+            ])("$zh ( $en )", async ({ map: badMap }) => {
                 const extractor = new DomExtractor();
 
                 await expectRejectsCode(extractor.search(document.body, badMap as any), "INVALID_MAP");
             });
 
-            it("map 传空对象时，返回空对象", async ()=>{
+            it("map 传空对象时，返回空对象 ( returns an empty object when map is empty )", async ()=>{
                 const extractor = new DomExtractor();
 
                 const result = await extractor.search(document.body, {});
@@ -492,7 +492,7 @@ describe("DomExtractor.search", ()=>{
                 expect(result).toEqual({});
             });
 
-            it("search 不应修改传入的搜索配置", async ()=>{
+            it("search 不应修改传入的搜索配置 ( search does not mutate the provided search config )", async ()=>{
                 const extractor = new DomExtractor();
                 const searchMap = {
                     "name": {
@@ -512,19 +512,19 @@ describe("DomExtractor.search", ()=>{
             });
         });
 
-        describe("selector 相关", ()=>{
+        describe("selector 相关 ( selector-related errors )", ()=>{
             it.each([
-                ["selector 为空字符串", { name: { selector: "" } }],
-                ["selector 为纯空白", { name: { selector: "   " } }],
-                ["缺失 selector", { name: { attr: "innerText" } }],
-                ["字符串简写为空", { name: "" }],
-            ])("非法 map：%s", async (_label, badMap) => {
+                { zh: "非法 map：selector 为空字符串", en: "invalid map: empty selector string", map: { name: { selector: "" } } },
+                { zh: "非法 map：selector 为纯空白", en: "invalid map: whitespace-only selector", map: { name: { selector: "   " } } },
+                { zh: "非法 map：缺失 selector", en: "invalid map: missing selector", map: { name: { attr: "innerText" } } },
+                { zh: "非法 map：字符串简写为空", en: "invalid map: empty string shorthand", map: { name: "" } },
+            ])("$zh ( $en )", async ({ map: badMap }) => {
                 const extractor = new DomExtractor();
 
                 await expectRejectsCode(extractor.search(document.body, badMap as any), "SELECTOR_EMPTY");
             });
 
-            it("map.selector 找不到对应元素时，报错", async ()=>{
+            it("map.selector 找不到对应元素时，报错 ( throws when map.selector finds no element )", async ()=>{
                 const extractor = new DomExtractor();
 
                 await expectRejectsCode(extractor.search(document.body, {
@@ -533,7 +533,7 @@ describe("DomExtractor.search", ()=>{
                 }), "ELEMENT_NOT_FOUND");
             });
 
-            it("元素存在但 map.attr 属性名取不到值时，报错", async ()=>{
+            it("元素存在但 map.attr 属性名取不到值时，报错 ( throws when the element exists but map.attr cannot be read )", async ()=>{
                 const extractor = new DomExtractor();
 
                 await expectRejectsCode(extractor.search(document.body, {
@@ -541,7 +541,7 @@ describe("DomExtractor.search", ()=>{
                 }), "ATTR_READ_FAILED");
             });
             
-            it("group 选择器找不到元素时，返回空数组而不是报错", async ()=>{
+            it("group 选择器找不到元素时，返回空数组而不是报错 ( returns an empty array instead of throwing when a group selector finds no elements )", async ()=>{
                 const extractor = new DomExtractor({
                     groupKeys: ["ghostCourses"]
                 });
@@ -550,16 +550,16 @@ describe("DomExtractor.search", ()=>{
                     "ghostCourses": ".ghost-course"
                 });
 
-                // 与单个 key 缺失即报错不同：group 模式静默返回空数组
+                // Unlike a missing single key, group mode silently returns an empty array
                 expect(result).toEqual({ ghostCourses: [] });
             });
 
-            it("group 选择器不支持 @ 深层查找，会因非法 selector 报错", async ()=>{
+            it("group 选择器不支持 @ 深层查找，会因非法 selector 报错 ( group selectors do not support @ deep lookup and throw on an invalid selector )", async ()=>{
                 const extractor = new DomExtractor({
                     groupKeys: ["attendanceRate"]
                 });
 
-                // group 走 querySelectorAll，不解析 @ 分隔符，因此整串被当作非法 CSS selector
+                // group uses querySelectorAll and does not parse @, so the whole string is treated as an invalid CSS selector
                 const error = await expectRejectsCode(extractor.search(document.body, {
                     "attendanceRate": ".additional-info iframe@dd:nth-of-type(1)"
                 }), "UNKNOWN_ERROR");
@@ -567,8 +567,8 @@ describe("DomExtractor.search", ()=>{
                 expect(error.occur?.key).toBe("attendanceRate");
             });
 
-            it("iframe 跨域无法访问 contentDocument 时，打印警告并按找不到元素报错", async ()=>{
-                // happy-dom 不模拟跨域，参照浏览器行为用抛 SecurityError 的 getter 模拟跨域访问被拒
+            it("iframe 跨域无法访问 contentDocument 时，打印警告并按找不到元素报错 ( logs a warning and reports element-not-found when contentDocument is blocked by cross-origin access )", async ()=>{
+                // happy-dom does not simulate cross-origin access; mimic the browser with a getter that throws SecurityError
                 const iframe = document.querySelector(".additional-info iframe") as HTMLIFrameElement;
                 Object.defineProperty(iframe, "contentDocument", {
                     get(){
@@ -583,19 +583,19 @@ describe("DomExtractor.search", ()=>{
                 }), "ELEMENT_NOT_FOUND");
 
                 expect(warnSpy).toHaveBeenCalledOnce();
-                expect(String(warnSpy.mock.calls[0]?.[0])).toContain("跨域限制");
+                expect(String(warnSpy.mock.calls[0]?.[0])).toContain("cross-origin restrictions");
             });
         });
 
-        describe("action 相关", ()=>{
-            it("自定义 action 中引用不存在的上下文时，只能拿到 undefined", async ()=>{
+        describe("action 相关 ( action-related errors )", ()=>{
+            it("自定义 action 中引用不存在的上下文时，只能拿到 undefined ( a custom action sees undefined for context keys that do not exist )", async ()=>{
                 const seen:(string|undefined)[] = [];
                 const actionRegistry = new ActionRegistry();
                 actionRegistry.register("read-context", function(this:Record<string, string|undefined>, str:string){
                     seen.push(this.cdn);
                     return str;
                 });
-                // 未通过 context 配置 cdn
+                // cdn is not configured via context
                 const extractor = new DomExtractor({ actionRegistry });
 
                 const result = await extractor.search(document.body, {
@@ -606,7 +606,7 @@ describe("DomExtractor.search", ()=>{
                 expect(seen).toEqual([undefined]);
             });
 
-            it("map.actions 配置为非数组时，报错", async ()=>{
+            it("map.actions 配置为非数组时，报错 ( throws when map.actions is not an array )", async ()=>{
                 const extractor = new DomExtractor();
 
                 await expectRejectsCode(extractor.search(document.body, {
@@ -614,7 +614,7 @@ describe("DomExtractor.search", ()=>{
                 } as any), "INVALID_ACTIONS");
             });
 
-            it("map.actions 使用未注册的 action 名时，报错", async ()=>{
+            it("map.actions 使用未注册的 action 名时，报错 ( throws when map.actions uses an unregistered action name )", async ()=>{
                 const extractor = new DomExtractor();
 
                 await expectRejectsCode(extractor.search(document.body, {
@@ -622,7 +622,7 @@ describe("DomExtractor.search", ()=>{
                 }), "ACTION_NOT_FOUND");
             });
 
-            it("map.action 对象缺少 name 时，报错", async ()=>{
+            it("map.action 对象缺少 name 时，报错 ( throws when a map.action object is missing name )", async ()=>{
                 const extractor = new DomExtractor();
 
                 await expectRejectsCode(extractor.search(document.body, {
@@ -630,7 +630,7 @@ describe("DomExtractor.search", ()=>{
                 } as any), "INVALID_ACTION_NAME");
             });
 
-            it("map.action 的 params 配置为非数组时，报错", async ()=>{
+            it("map.action 的 params 配置为非数组时，报错 ( throws when map.action params is not an array )", async ()=>{
                 const extractor = new DomExtractor();
 
                 await expectRejectsCode(extractor.search(document.body, {
@@ -638,18 +638,18 @@ describe("DomExtractor.search", ()=>{
                 } as any), "INVALID_ACTION_PARAMS");
             });
 
-            it("group action 应用到非数组值(未在 groupKeys 中声明)时，报错", async ()=>{
-                const extractor = new DomExtractor();  // interests 未声明为 groupKeys，取到的是字符串
+            it("group action 应用到非数组值 (未在 groupKeys 中声明) 时，报错 ( throws when a group action is applied to a value not listed in groupKeys )", async ()=>{
+                const extractor = new DomExtractor();  // interests is not listed in groupKeys, so it is fetched as a string
 
                 await expectRejectsCode(extractor.search(document.body, {
                     "interests": { "selector": ".interests", "actions": ["split"] }
                 }), "ACTION_TYPE_MISMATCH");
             });
 
-            it("map.action 执行过程中自身抛出的异常，被包装为 DomExtractorError 后抛出", async ()=>{
+            it("map.action 执行过程中自身抛出的异常，被包装为 DomExtractorError 后抛出 ( wraps an exception thrown by a map.action execution in a DomExtractorError )", async ()=>{
                 const actionRegistry = new ActionRegistry();
                 actionRegistry.register("boom", (str:string):string=>{
-                    throw new Error("自定义 action 执行失败");
+                    throw new Error("Custom action failed");
                 });
                 const extractor = new DomExtractor({ actionRegistry });
 
@@ -657,14 +657,14 @@ describe("DomExtractor.search", ()=>{
                     "name": { "selector": ".name", "actions": ["boom"] }
                 }), "UNKNOWN_ERROR");
 
-                // 原始异常保留在 cause 中
+                // The original exception is kept in cause
                 expect(error.cause).toBeInstanceOf(Error);
-                expect((error.cause as Error).message).toBe("自定义 action 执行失败");
+                expect((error.cause as Error).message).toBe("Custom action failed");
             });
         });
 
-        describe("click 相关", ()=>{
-            it("map.click 指定的按钮 selector 不存在时，跳过点击，按找不到目标元素报错", async ()=>{
+        describe("click 相关 ( click-related errors )", ()=>{
+            it("map.click 指定的按钮 selector 不存在时，跳过点击，按找不到目标元素报错 ( skips the click and reports element-not-found when the map.click selector does not exist )", async ()=>{
                 const warnSpy = vi.spyOn(console, "warn").mockImplementation(()=>{});
                 const extractor = new DomExtractor();
 
@@ -675,11 +675,11 @@ describe("DomExtractor.search", ()=>{
                     }
                 }), "ELEMENT_NOT_FOUND");
 
-                // 触发器不存在时直接跳过点击，不打印 Click 警告
+                // When the trigger does not exist, skip the click without logging a Click warning
                 expect(warnSpy).not.toHaveBeenCalled();
             });
 
-            it("map.click 后目标元素一直未出现(轮询超时)时，打印 Click 失败警告并报错", async ()=>{
+            it("map.click 后目标元素一直未出现 (轮询超时) 时，打印 Click 失败警告并报错 ( logs a Click failure warning and throws on polling timeout )", async ()=>{
                 vi.useFakeTimers();
                 const warnSpy = vi.spyOn(console, "warn").mockImplementation(()=>{});
 
@@ -691,16 +691,16 @@ describe("DomExtractor.search", ()=>{
                     }
                 });
 
-                // 按钮存在但未绑定点击逻辑，目标元素不会出现；等待轮询耗尽 (默认 6 × 500ms)
+                // The button exists but has no click handler, so the target never appears; wait for polling to exhaust (default 6 × 500ms)
                 const assertion = expectRejectsCode(searchPromise, "ELEMENT_NOT_FOUND");
                 await vi.advanceTimersByTimeAsync(4000);
 
                 await assertion;
-                expect(String(warnSpy.mock.calls[0]?.[0])).toContain("未出现或查找超时");
+                expect(String(warnSpy.mock.calls[0]?.[0])).toContain("did not appear or the lookup timed out");
             });
         });
 
-        it("多层包装后错误前缀不重复，并携带 occur key 定位配置键", async ()=>{
+        it("多层包装后错误前缀不重复，并携带 occur key 定位配置键 ( does not duplicate the error prefix after wrapping and carries the occur key )", async ()=>{
             const extractor = new DomExtractor();
 
             const error = await expectRejectsCode(extractor.search(document.body, {
@@ -709,7 +709,7 @@ describe("DomExtractor.search", ()=>{
             }), "ELEMENT_NOT_FOUND");
 
             expect(error.occur?.key).toBe("ghost");
-            // 错误前缀只出现一次，避免层层包装后重复
+            // The error prefix appears only once even after repeated wrapping
             expect(error.message.match(/\[DOM_EXTRACTOR_ERR\]/g)).toHaveLength(1);
         });
     });

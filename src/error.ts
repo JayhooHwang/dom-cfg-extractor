@@ -29,7 +29,7 @@ export class DomExtractorError extends Error {
         super(`${PREFIX} ${getErrorMessage(message, occur)}`, {cause});
         this.code = code;
         this.occur = occur;
-        //处理 stack —— 用 this.stack 的第一行，替换 cause.stack 的第一行，赋值回 this.stack
+        // Rewrite the stack: replace the first line of cause.stack with the first line of this.stack
         if(cause && cause.stack){
             const [, ...causeStacks] = cause.stack.split("\n");
             const thisStacks = this.stack?.split("\n") || [];
@@ -54,7 +54,7 @@ function getErrorMessage(message:string, occur?:ErrorOccurrence){
 
 export function resolveCatch(ex:unknown, occur?:ErrorOccurrence):never{
     if(ex instanceof DomExtractorError){
-        //已带前缀的 DomExtractorError 作为 cause 时，避免前缀重复，并保留原有 code
+        // When a prefixed DomExtractorError is used as cause, avoid duplicating the prefix and keep the original code
         const message = ex.message.slice(PREFIX.length).trim();
         throw new DomExtractorError(ex.code, message, ex, occur);
     }else if(ex instanceof Error){

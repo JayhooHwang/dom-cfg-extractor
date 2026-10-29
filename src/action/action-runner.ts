@@ -22,19 +22,19 @@ export class ActionRunner{
             if(action.applyFor === 'group'){
                 // Group Action
                 if(Array.isArray(result)){
-                    // 对于数组，直接应用（string[] -> string[]）
+                    // For arrays, apply directly (string[] -> string[])
                     result = action.run(result, context, ...params);
                 }else{
-                    // 对于非数组，报错（string -> string[]）
-                    throw new DomExtractorError("ACTION_TYPE_MISMATCH", `Action ${action.name} 不能应用于非数组`)
+                    // For non-arrays, throw (string -> string[])
+                    throw new DomExtractorError("ACTION_TYPE_MISMATCH", `Action ${action.name} cannot be applied to a non-array value`)
                 }
             }else{
                 // Single Action
                 if(Array.isArray(result)){
-                    // 对于数组，遍历应用（string[] -> string[]）
+                    // For arrays, apply to each item (string[] -> string[])
                     result = result.map(item => action.run(item, context, ...params));
                 }else{
-                    // 对于非数组，直接应用（string -> string）
+                    // For non-arrays, apply directly (string -> string)
                     result = action.run(result, context, ...params);
                 }
             }

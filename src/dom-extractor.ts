@@ -25,10 +25,10 @@ export class DomExtractor{
 
     async search(dom:Document|Element, map:SearchMap): Promise<Record<string, string|string[]>>{
         if(!isQueryableNode(dom)){
-            throw new DomExtractorError("INVALID_DOM", "dom 必须是 Document 或 Element");
+            throw new DomExtractorError("INVALID_DOM", "dom must be a Document or Element");
         }
         if(!isPlainObject(map)){
-            throw new DomExtractorError("INVALID_MAP", "map 必须是 plain object");
+            throw new DomExtractorError("INVALID_MAP", "map must be a plain object");
         }
         let currentItem:ErrorOccurrence = { key: "" };
         try{
@@ -79,7 +79,7 @@ function isPlainObject(value:unknown):value is Record<string, unknown>{
 }
 
 /**
- * 从单一目标中获取原始数据（单一目标，可以是某个 DOM，或者其它，比如 location）
+ * Get raw data from a single target (a DOM node, or something else such as location)
  */
 function getRawData(baseNode:Document|Element, selector:string, attr:string, optional:boolean):string{
     let rawData = "";
@@ -102,19 +102,19 @@ function getRawDataArray(baseNode:Document|Element, selector:string, attr:string
 }
 
 /**
- * 从 element 中获取原始数据
+ * Get raw data from an element
  */
 function getRawDataByAttr(el:Element|null, attr:string, silent:boolean):string{
     if(!el){
         if(silent){
             return "";
         }
-        throw new DomExtractorError("ELEMENT_NOT_FOUND", "找不到指定的 element");
+        throw new DomExtractorError("ELEMENT_NOT_FOUND", "The specified element was not found");
     }
     const rawData = readPropOrAttrFromElement(el, attr);
     if(typeof rawData === 'string'){
         return rawData.trim();
     }else{
-        throw new DomExtractorError("ATTR_READ_FAILED", `无法从指定的 element 中正确获取 ${attr} 属性`);
+        throw new DomExtractorError("ATTR_READ_FAILED", `Failed to read "${attr}" from the specified element`);
     }
 }

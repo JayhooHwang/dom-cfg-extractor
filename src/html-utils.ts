@@ -1,21 +1,21 @@
 import { consoleWarning } from "./error.ts";
 
 /**
- * 判断是否为可进入内容文档的 frame 元素
- * 用鸭子类型而非 instanceof：iframe 属于独立 realm，嵌套层级的 iframe 元素不是当前 window 的 HTMLIFrameElement 实例
+ * Check whether the node is a frame element whose content document can be entered
+ * Use duck typing instead of instanceof: iframes live in a separate realm, so nested iframe elements are not instances of the current window's HTMLIFrameElement
  */
 function isFrameElement(node: Document|Element): node is Element & { contentDocument: Document|null }{
     return 'contentDocument' in node;
 }
 
 /**
- * 深入查找 iframe ( 使用 @ 作为选择器分隔符, 例如："#the_iframe@#the_div_in_frame" )
+ * Query deeply inside iframes (use @ as the selector separator, e.g. "#the_iframe@#the_div_in_frame")
  */
 export function querySelectorDeep(baseNode: Document|Element, selector:string): Element|null{
     const contentSelectors = selector.split('@');
     const emptyIndex = contentSelectors.findIndex(sel => !sel.trim());
     if(emptyIndex !== -1){
-        consoleWarning(`无法获取 ${selector} 内容：第 ${emptyIndex + 1} 段 selector 为空，请检查 @ 分隔符是否拼接完整`)
+        consoleWarning(`Failed to query "${selector}": selector segment ${emptyIndex + 1} is empty; check that the @ separators are complete`)
         return null;
     }
     try{
@@ -25,15 +25,15 @@ export function querySelectorDeep(baseNode: Document|Element, selector:string): 
             }else{
                 return parent?.querySelector(sel) || null;
             }
-        }, baseNode) as Element;    //as: Document 类型只用于兼顾输入，这里的返回能肯定是 Element
+        }, baseNode) as Element;    // Document is only part of the input type; the return value is always an Element
     }catch(ex){
-        consoleWarning(`无法获取 ${selector} 内容，可能存在跨域限制`, ex)
+        consoleWarning(`Failed to query "${selector}"; it may be blocked by cross-origin restrictions`, ex)
     }
     return null;
 }
 
 /**
- * 多次轮询查找，直到找到目标元素
+ * Poll repeatedly until the target element is found
  */
 export function retryQuery(baseNode:Document|Element, selector:string, 
     options:{maxTry?:number, interval?:number}={}):Promise<Element>{
@@ -49,7 +49,7 @@ export function retryQuery(baseNode:Document|Element, selector:string,
                         checkElement(++triedCount);
                     }, interval);
                 }else{
-                    rj(`元素查找超时(在 ${maxTry} × ${interval} 毫秒内未找到目标 ${selector})`);
+                    rj(`Element lookup timed out (target "${selector}" not found within ${maxTry} × ${interval} ms)`);
                 }
             }
         }
@@ -58,21 +58,21 @@ export function retryQuery(baseNode:Document|Element, selector:string,
 }
 
 /**
- * 执行 click（点击目标支持 @ 深层查找），并查找点击事件触发后才会出现的元素（运行环境必须支持 click() 的执行）
+ * Trigger a click (the click target supports @ deep lookup) and find the element that only appears after the click event (the runtime must support click())
  */
 export function clickAndQuery(baseNode:Document|Element, selector:string, 
     clickSelector:string):Promise<Element|null>{
     const clickTrigger = (clickSelector ? querySelectorDeep(baseNode, clickSelector) : null) as HTMLElement | null;
-    // 用鸭子类型而非 instanceof HTMLElement：iframe 属于独立 realm，其内部元素不是当前 window 的 HTMLElement 实例
+    // Use duck typing instead of instanceof HTMLElement: iframes live in a separate realm, so their elements are not instances of the current window's HTMLElement
     if(clickTrigger && typeof clickTrigger.click === 'function'){
         try {
             clickTrigger.click();
         } catch (error) {
-            consoleWarning(`Click 失败: ${clickSelector} 不支持直接执行 click()`);
+            consoleWarning(`Click failed: cannot call click() on ${clickSelector}`);
             return Promise.resolve(null);
         }
         return retryQuery(baseNode, selector).catch(()=>{
-            consoleWarning(`Click 失败: 关联目标 ${selector} 未出现或查找超时`);
+            consoleWarning(`Click failed: related target ${selector} did not appear or the lookup timed out`);
             return null;
         });
     }else{
@@ -86,7 +86,7 @@ export function clickAndQuery(baseNode:Document|Element, selector:string,
  * @returns {string}
  */
 export function readPropOrAttrFromElement(el:Element, attr: string):string|undefined{
-    const _EL_PROPS = ["innerText", "innerHTML", "href"];   //为什么需要列入 href：如果通过 getAttribute 获取 href，则只获取原始字符串，而不会自动拼接为一个完整的 url
+    const _EL_PROPS = ["innerText", "innerHTML", "href"];   // href must be listed here: getAttribute('href') returns the raw string instead of a fully resolved URL
     const result = _EL_PROPS.includes(attr) ? (el as unknown as Record<string, unknown>)[attr] : el.getAttribute(attr);
     switch(typeof result){
         case 'bigint':

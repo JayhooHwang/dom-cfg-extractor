@@ -5,19 +5,19 @@ export type SearchMap = Record<string, MapItem|string>
 
 export interface MapItem{
     /**
-     * 想要获取的数据所在的元素的 selector
+     * Selector of the element that contains the desired data
      */
     selector: string;
     /**
-     * 想要获取的数据所在的元素的属性名，包含 innerText(可简写：text) 和 innerHTML(可简写：html)
+     * Attribute or property name of the element, including innerText (alias: text) and innerHTML (alias: html)
      */
     attr?: string;
     /**
-     * 对获取到的原始值进行一系列的处理
+     * A series of transformations applied to the raw value
      */
     actions?: ActionCaller[];
     /**
-     * 预先触发一个点击事件，值为被点击元素的 selector
+     * Trigger a click beforehand; the value is the selector of the element to click
      */
     click?: string;
 }
@@ -25,23 +25,23 @@ export interface MapItem{
 export interface ExecuteMapItem extends MapItem{
     attr: string
     /**
-     * 用户配置中的原始 key
+     * Original key from the user configuration
      */
     rawKey: string;
     /**
-     * 可用于执行的正式 key
+     * Normalized key used for execution
      */
     key: string;
     /**
-     * 是否为可选项（由用户在 key 后面加 ? 确定，例如：key?:"#selector"）
+     * Whether the key is optional (declared with a trailing ?, e.g. key?:"#selector")
      */
     optional: boolean;
     /**
-     * 是否返回数组
+     * Whether to return an array
      */
     group: boolean;
     /**
-     * 查找时的上下文，可附加一些特定信息
+     * Lookup context; may carry additional information
      */
     context: ExtractorSearchingContext;
 }
@@ -74,7 +74,7 @@ export function resolveExecuteMapItem(rawKey:string, rawItem:string|MapItem, gro
 }
 
 /**
- * 解析可选 key，写法是以“?”结尾
+ * Resolve an optional key, marked by a trailing ?
  */
 function resolveOptionalKey(rawKey:string){
     let key = rawKey, optional = false;
@@ -89,14 +89,14 @@ function checkMapItem(mapItem:MapItem|string):void|never{
     const selector = typeof mapItem === 'string' ? mapItem : mapItem.selector;
     
     if(!selector || !selector.trim()){
-        throw new DomExtractorError("SELECTOR_EMPTY", "selector 不能为空");
+        throw new DomExtractorError("SELECTOR_EMPTY", "selector cannot be empty");
     }
 
     if(typeof mapItem === 'string') return;
     const {actions} = mapItem;
 
     if(!!actions && !Array.isArray(actions)){
-        throw new DomExtractorError("INVALID_ACTIONS", "actions 必须是数组");
+        throw new DomExtractorError("INVALID_ACTIONS", "actions must be an array");
     }
 }
 
