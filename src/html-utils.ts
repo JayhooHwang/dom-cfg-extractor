@@ -1,6 +1,14 @@
 import { consoleWarning } from "./error.ts";
 
 /**
+ * 判断是否为可进入内容文档的 frame 元素
+ * 用鸭子类型而非 instanceof：iframe 属于独立 realm，嵌套层级的 iframe 元素不是当前 window 的 HTMLIFrameElement 实例
+ */
+function isFrameElement(node: Document|Element): node is Element & { contentDocument: Document|null }{
+    return 'contentDocument' in node;
+}
+
+/**
  * 深入查找 iframe ( 使用 @ 作为选择器分隔符, 例如："#the_iframe@#the_div_in_frame" )
  */
 export function querySelectorDeep(baseNode: Document|Element, selector:string): Element|null{
@@ -12,7 +20,7 @@ export function querySelectorDeep(baseNode: Document|Element, selector:string): 
     }
     try{
         return contentSelectors.reduce<Document|Element|null>((parent, sel)=>{
-            if(parent instanceof HTMLIFrameElement){
+            if(parent && isFrameElement(parent)){
                 return parent.contentDocument?.querySelector(sel) || null;
             }else{
                 return parent?.querySelector(sel) || null;
