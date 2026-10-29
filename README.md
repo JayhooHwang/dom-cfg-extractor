@@ -2,7 +2,7 @@
 
 **English** | [简体中文](./README.zh-CN.md)
 
-Extract DOM data with a JSON search map. When the page structure changes, update the config — not the code.
+Extract DOM data conveniently with a single JSON config. When the page structure changes, update the config — not the code.
 
 - Suited to cases where you need to repeatedly extract the same kind of data from one or more sites over time, while page layouts are out of your control and may change at any moment;
 
