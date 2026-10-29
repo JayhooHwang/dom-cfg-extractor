@@ -1,5 +1,7 @@
 # dom-cfg-extractor
 
+[![npm version](https://img.shields.io/npm/v/dom-cfg-extractor.svg)](https://www.npmjs.com/package/dom-cfg-extractor)
+
 **English** | [简体中文](./README.zh-CN.md)
 
 Extract DOM data conveniently with a single JSON config. When the page structure changes, update the config — not the code.

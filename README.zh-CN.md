@@ -1,5 +1,7 @@
 # dom-cfg-extractor
 
+[![npm version](https://img.shields.io/npm/v/dom-cfg-extractor.svg)](https://www.npmjs.com/package/dom-cfg-extractor)
+
 [English](./README.md) | **简体中文**
 
 通过一份 JSON 配置来便捷地提取 DOM 中的数据。当页面结构变化时，改配置，不改代码。
