@@ -47,8 +47,7 @@ export interface ExecuteMapItem extends MapItem{
 }
 
 export type ExtractorSearchingContext = {
-    root?: string,
-    [key:string]: string
+    [key:string]: string | undefined
 }
 
 export function resolveExecuteMapItem(rawKey:string, rawItem:string|MapItem, groupKeys:string[], context:ExtractorSearchingContext):ExecuteMapItem{
