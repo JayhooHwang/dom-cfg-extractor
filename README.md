@@ -6,9 +6,11 @@ Extract DOM data with a JSON search map. When the page structure changes, update
 
 - Suited to cases where you need to repeatedly extract the same kind of data from one or more sites over time, while page layouts are out of your control and may change at any moment;
 
-- Abstract the page structure into a pure JSON config and store the config as user data; even when the page structure changes, only the config needs updating;
+- By abstracting the page structure into a pure JSON config, even when the page structure changes, only the config needs updating; this turns the config into pure user data that can be stored, customized by users, shared, and more;
 
-- More features: preliminary data cleaning with custom actions, plus array data, iframe content, and values that only appear after a click.
+- Why it matters for AI applications: for pages that require long-term analysis and have a relatively stable structure, it saves tokens and mitigates hallucinations;
+
+- More features: preliminary data cleaning with custom actions, extracting array data, iframe content, and values that only appear after a click.
 
 ## Requirements
 
