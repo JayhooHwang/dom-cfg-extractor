@@ -50,12 +50,13 @@ export function retryQuery(baseNode:Document|Element, selector:string,
 }
 
 /**
- * 执行 click，并查找点击事件触发后才会出现的元素（运行环境必须支持 click() 的执行）
+ * 执行 click（点击目标支持 @ 深层查找），并查找点击事件触发后才会出现的元素（运行环境必须支持 click() 的执行）
  */
 export function clickAndQuery(baseNode:Document|Element, selector:string, 
     clickSelector:string):Promise<Element|null>{
-    const clickTrigger = clickSelector && baseNode.querySelector(clickSelector);
-    if(clickTrigger && clickTrigger instanceof HTMLElement){
+    const clickTrigger = (clickSelector ? querySelectorDeep(baseNode, clickSelector) : null) as HTMLElement | null;
+    // 用鸭子类型而非 instanceof HTMLElement：iframe 属于独立 realm，其内部元素不是当前 window 的 HTMLElement 实例
+    if(clickTrigger && typeof clickTrigger.click === 'function'){
         try {
             clickTrigger.click();
         } catch (error) {

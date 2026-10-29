@@ -2,15 +2,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { querySelectorDeep, retryQuery, clickAndQuery, readPropOrAttrFromElement } from '../src/html-utils.ts'
 
-describe("querySelectorDeep",()=>{
-    // iframe 的 about:blank 是异步加载，需等待完成后才能写入内容
-    async function frameBody(iframe:HTMLIFrameElement, bodyHTML:string):Promise<Document>{
-        await (window as any).happyDOM.waitUntilComplete();
-        const doc = iframe.contentDocument!;
-        doc.body.innerHTML = bodyHTML;
-        return doc;
-    }
+// iframe 的 about:blank 是异步加载，需等待完成后才能写入内容
+async function frameBody(iframe:HTMLIFrameElement, bodyHTML:string):Promise<Document>{
+    await (window as any).happyDOM.waitUntilComplete();
+    const doc = iframe.contentDocument!;
+    doc.body.innerHTML = bodyHTML;
+    return doc;
+}
 
+describe("querySelectorDeep",()=>{
     beforeEach(()=>{
         document.body.innerHTML = `
             <div id="shallow">浅层内容</div>
@@ -175,6 +175,43 @@ describe("clickAndQuery", ()=>{
 
         expect(await promise).toBeNull();
         expect(String(warnSpy.mock.calls[0]?.[0])).toContain('未出现或查找超时');
+    });
+
+    it("点击触发器和目标元素都可以位于 iframe 内（@ 深层查找）", async ()=>{
+        const iframe = document.createElement('iframe');
+        iframe.id = 'the_iframe';
+        document.body.append(iframe);
+        const frameDoc = await frameBody(iframe, '<button id="btn">点我</button>');
+        frameDoc.getElementById('btn')!.addEventListener('click', ()=>{
+            frameDoc.body.insertAdjacentHTML('beforeend', '<div id="target">点击后出现</div>');
+        });
+
+        const result = await clickAndQuery(document, '#the_iframe@#target', '#the_iframe@#btn');
+
+        expect(result?.textContent).toBe('点击后出现');
+    });
+
+    it("点击触发器位于 iframe 内、目标元素位于 iframe 外时，也能查到目标", async ()=>{
+        const iframe = document.createElement('iframe');
+        iframe.id = 'the_iframe';
+        document.body.append(iframe);
+        const frameDoc = await frameBody(iframe, '<button id="btn">点我</button>');
+        frameDoc.getElementById('btn')!.addEventListener('click', ()=>{
+            document.body.insertAdjacentHTML('beforeend', '<div id="target">点击后出现</div>');
+        });
+
+        const result = await clickAndQuery(document, '#target', '#the_iframe@#btn');
+
+        expect(result?.textContent).toBe('点击后出现');
+    });
+
+    it("iframe 内的点击触发器不存在时，返回 null", async ()=>{
+        const iframe = document.createElement('iframe');
+        iframe.id = 'the_iframe';
+        document.body.append(iframe);
+        await frameBody(iframe, '<div id="target">已存在</div>');
+
+        expect(await clickAndQuery(document, '#the_iframe@#target', '#the_iframe@#not_exists')).toBeNull();
     });
 });
 
